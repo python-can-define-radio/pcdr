@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=42.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "pcdr"
+version = "1.0.0a1"
+authors = [
+  { name="james-pcdr" },
+]
+description = "GNU Radio-based transmit and receive wrappers and more"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = ["numpy", "termcolor", "typeguard", "attrs>=21.1.0"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/python-can-define-radio/pcdr"
+"Bug Tracker" = "https://github.com/python-can-define-radio/pcdr/issues"
