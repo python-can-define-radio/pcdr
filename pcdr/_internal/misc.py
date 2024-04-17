@@ -1,7 +1,10 @@
 from queue import SimpleQueue, Empty, Queue
 import signal
 import sys
-from typing import Union, Type, overload
+from typing import (
+    Union, Type, overload,
+    Literal, Callable, Type, Optional
+)
 
 import attrs
 from attrs import field, validators
@@ -430,3 +433,86 @@ def gnuradio_send(data: np.ndarray,
     configure_graceful_exit(tb)
     tb.start()
     tb.wait()
+
+
+@typechecked
+def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"],
+             func: Callable,
+             in_type: Optional[type],
+             out_type: Optional[type]):
+    """Turns a function into a (relatively inefficient) gnuradio block.
+    Mostly useful for testing.
+    
+    Example:
+    >>> import time
+    >>> state = {"current": np.int64(0)}
+    >>> def count_up() -> np.int64:
+    ...     what_it_was = state["current"]
+    ...     state["current"] += np.int64(1)
+    ...     time.sleep(0.1)
+    ...     return what_it_was
+    >>> srcblk = blockify("source", count_up, in_type=None, out_type=np.int64)
+    >>> snkblk = blockify("sink", print, in_type=np.int64, out_type=None)
+    >>> tb = gr.top_block()
+    >>> tb.connect(srcblk, snkblk)
+    >>> tb.start()
+    >>> time.sleep(0.5)
+    0
+    1
+    2
+    3
+    4
+    >>> tb.stop()
+    >>> tb.wait()
+    """
+    if category == "source":
+        class Blockify_Blk(gr.sync_block):
+            @typechecked
+            def __init__(self):
+                gr.sync_block.__init__(
+                    self,
+                    name='',
+                    in_sig=[],
+                    out_sig=[out_type]
+                )
+
+            def work(self, input_items, output_items):  
+                output_items[0][0] = func()
+                return 1        
+        return Blockify_Blk()
+    
+    elif category == "sink":
+        class Blockify_Blk(gr.sync_block):
+            @typechecked
+            def __init__(self):
+                gr.sync_block.__init__(
+                    self,
+                    name='',
+                    in_sig=[in_type],
+                    out_sig=[]
+                )
+
+            def work(self, input_items, output_items):  
+                func(input_items[0][0])
+                return 1        
+        return Blockify_Blk()
+    
+    elif category == "whatever_you_call_the_others":
+        class Blockify_Blk(gr.sync_block):
+            @typechecked
+            def __init__(self):
+                gr.sync_block.__init__(
+                    self,
+                    name='',
+                    in_sig=[in_type],
+                    out_sig=[out_type]
+                )
+
+            def work(self, input_items, output_items):  
+                output_items[0][0] = func(input_items[0][0])
+                return 1        
+        return Blockify_Blk()
+    
+    else:
+        raise ValueError("not possible because of typechecked")
+
