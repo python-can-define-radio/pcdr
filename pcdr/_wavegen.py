@@ -360,14 +360,45 @@ def make_wave(samp_rate: float,
              num: Optional[float] = None,
              allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
     """
-    TODO:
-     - finish writing tests
-     - Write implementation that makes these tests pass
-     - Change lessons to use makeWave
-     - Add @typechecked to all funcs in this file
+    Generate a sine wave and the associated timestamps.
+
+    Parameters:
+    -----------
+    samp_rate :
+        Measured in samples per second.
+    freq :
+        Frequency in Hz of the generated wave.
+    type_ :
+        "real" will have no imaginary part. "complex" will have an imaginary part that is 90 degrees out of phase from the real part.
+    seconds : 
+        The length of the signal will be this many seconds. See example 1.
+        
+
+    Examples:
+    ---------
+
+    Example 1: Demonstrating `seconds`.
     
-    >>> from pcdr._internal.basictermplot import plot
+    If we set our sample rate...   
+    >>> samp_rate = 50
+
+    ...and our number of seconds...  
+    >>> seconds = 2
+
+    ...the return value will have the length that we expect, which is samp_rate * seconds samples:
+    >>> timestamps, wave = makeWave(samp_rate, freq=3, "real", seconds=seconds)
+    >>> print(len(timestamps))
+    100
+    >>> print(len(wave))
+    100
+    
+
+    Example 2: Plotting a result.
+    Generate one second of data of a 3 Hz wave. The sample rate is 50 samples per second, and it is a real wave (no imaginary part).
     >>> timestamps, wave = makeWave(50, 3, "real", seconds=1)
+
+    Plot that wave. (Note, matplotlib would generate a superior plot; this is a simplified textual plot.)
+    >>> from pcdr._internal.basictermplot import plot
     >>> plot(timestamps, wave)
     xmin: 0.00
     xmax: 0.98
@@ -491,8 +522,8 @@ def make_wave(samp_rate: float,
         raise Exception("Impossible case")
 
 
-makeWave = make_wave
-
+def makeWave(*args, **kwargs):
+    print("Use make_wave instead.")
 
 
 def wave_and_write(basename: str, timestamps: np.ndarray, freq, complex_or_real: Literal["c", "r"]):
