@@ -491,9 +491,14 @@ def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"]
                     in_sig=[in_type],
                     out_sig=[]
                 )
+                self._in_type = in_type
 
-            def work(self, input_items, output_items):  
-                func(input_items[0][0])
+            def work(self, input_items, output_items): 
+                # This may be a redundant check, but that's ok
+                #  because this is not meant to be performant
+                indat = input_items[0][0]
+                assert isinstance(indat, self._in_type)
+                func(indat)
                 return 1        
         return Blockify_Blk()
     
