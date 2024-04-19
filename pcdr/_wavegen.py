@@ -2,6 +2,7 @@ import random
 from typing import Optional, List, Tuple, Literal
 
 import numpy as np
+from numpy.typing import NDArray
 from typeguard import typechecked
 
 from pcdr._internal.fileio import writeRealCSV, writeComplexCSV
@@ -10,7 +11,8 @@ from pcdr._helpers import str_to_bin_list
 
 
 
-def make_timestamps_seconds(seconds: float, num_samples: int, dtype=np.float64) -> np.ndarray:
+@typechecked
+def make_timestamps_seconds(seconds: float, num_samples: int, dtype=np.float64) -> NDArray:
     """Creates timestamps from zero up to the given maximum number of seconds.
     Implemented using np.linspace().
     
@@ -36,7 +38,8 @@ def make_timestamps_seconds(seconds: float, num_samples: int, dtype=np.float64) 
     return result
 
 
-def make_timestamps_samprate(samp_rate: float, num_samples: int, dtype=np.float64) -> np.ndarray:
+@typechecked
+def make_timestamps_samprate(samp_rate: float, num_samples: int, dtype=np.float64) -> NDArray:
     """Creates `num_samples` timestamps spaced by `1/samp_rate`.
     Implemented using np.linspace().
     
@@ -75,19 +78,20 @@ def make_timestamps():
 # def makeRealWave(samp_rate: float,
 #                  freq: float,
 #                  num_samples: int,
-#                  allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]: ...
+#                  allowAliasing: bool = False) -> Tuple[NDArray, NDArray]: ...
 # @overload
 # def makeRealWave(samp_rate: float,
 #                  freq: float,
 #                  seconds: float,
-#                  allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]: ...
+#                  allowAliasing: bool = False) -> Tuple[NDArray, NDArray]: ...
 # def makeRealWave(samp_rate: float,
 #                  freq: float,
 #                  **kwargs):
 #     return something
 
 
-def makeRealWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
+@typechecked
+def makeRealWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.float32]:
     """Return a sine wave.
     
     Example:
@@ -113,7 +117,8 @@ def makeRealWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
     return result
 
 
-def makeComplexWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
+@typechecked
+def makeComplexWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.complex64]:
     """Return a complex wave.
     
     The real part is cosine (starts at 1); the imaginary part is sine (starts at 0).
@@ -163,7 +168,7 @@ class AliasError(ValueError):
     pass
 
 
-
+@typechecked
 def _isAliasingWhenDisallowed(allowAliasing: bool, freq: float, samp_rate: float) -> bool:
     """
     Examples:
@@ -185,6 +190,7 @@ def _isAliasingWhenDisallowed(allowAliasing: bool, freq: float, samp_rate: float
     return (not allowAliasing) and (abs(freq) > samp_rate/2)
 
 
+@typechecked
 def _aliasingError(allowAliasing: bool, freq: float, samp_rate: float) -> None:
     """Gives a detailed Aliasing error message if it's aliasing when it shouldn't.
     :raises AliasError:"""
@@ -192,7 +198,8 @@ def _aliasingError(allowAliasing: bool, freq: float, samp_rate: float) -> None:
         raise AliasError(f"For a sample rate of {samp_rate}, the highest frequency that can be faithfully represented is {samp_rate/2}. The specified freq, {freq}, is greater than the limit specified by Shannon/Nyquist/Kotelnikov/Whittaker (commonly called the Nyquist frequency).")
 
 
-def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+@typechecked
+def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
     """
     Returns a tuple (timestamps, wave).
     
@@ -240,7 +247,8 @@ def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, al
     return timestamps, wave
 
 
-def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+@typechecked
+def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.float32]]:
     """
     Return a Real wave.
 
@@ -273,7 +281,7 @@ def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allow
     return timestamps, wave
 
 
-def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
     """
     Returns a tuple (timestamps, wave).
     
@@ -320,7 +328,7 @@ def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAli
     return timestamps, wave
 
 
-def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.float32]]:
     """
     Return a Real wave.
 
@@ -358,7 +366,7 @@ def make_wave(samp_rate: float,
              type_: Literal["real", "complex"],
              *, seconds: Optional[float] = None,
              num: Optional[float] = None,
-             allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+             allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray]:
     """
     Generate a sine wave and the associated timestamps.
 
@@ -588,7 +596,8 @@ def wave_file_gen(samp_rate: float, max_time: float, freq: float, complex_or_rea
     wave_and_write(filename, timestamps, freq, complex_or_real)
 
 
-def multiply_by_complex_wave(baseband_sig: np.ndarray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+@typechecked
+def multiply_by_complex_wave(baseband_sig: NDArray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
     """
     Returns a tuple (timestamps, mult).
 
@@ -618,7 +627,8 @@ def multiply_by_complex_wave(baseband_sig: np.ndarray, samp_rate: float, freq: f
     return timestamps, mult
 
 
-def multiply_by_real_wave(baseband_sig: np.ndarray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+@typechecked
+def multiply_by_real_wave(baseband_sig: NDArray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.float32]]:
     """
     Returns a tuple (timestamps, mult).
 
@@ -648,7 +658,8 @@ def multiply_by_real_wave(baseband_sig: np.ndarray, samp_rate: float, freq: floa
     return timestamps, mult
 
 
-def random_normal(size: int, dtype=np.float32, seed=None) -> np.ndarray:
+@typechecked
+def random_normal(size: int, dtype=np.float32, seed=None) -> NDArray:
     """A wrapper of numpy's `standard_normal()` function;
     returns a numpy array of length `size` containing normally distributed noise.
 
@@ -675,7 +686,8 @@ def random_normal(size: int, dtype=np.float32, seed=None) -> np.ndarray:
     return result
 
 
-def noisify(data: np.ndarray, amplitude=1, seed=None) -> np.ndarray:
+@typechecked
+def noisify(data: NDArray, amplitude=1, seed=None) -> NDArray:
     """
     Returns a copy of `data` with random normally distributed noise added.
     `seed` is optional, and mostly just used for testing the function.
@@ -702,7 +714,8 @@ def noisify(data: np.ndarray, amplitude=1, seed=None) -> np.ndarray:
     return result
 
 
-def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None) -> np.ndarray:
+@typechecked
+def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None) -> NDArray[np.complex64]:
     """
     Generate a file with the given `output_filename`.
 
@@ -743,6 +756,9 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
     return fully_modded
 
 
+## TODO: 2024 APRIL 18: FINISH ADDING TYPECHECKED AND ALSO CONVERT NDARRAY
+
+@typechecked
 def generate_ook_modulated_example_file(output_filename: str, noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None):
     """
     Generate a file with the given `output_filename`.
@@ -761,7 +777,8 @@ def generate_ook_modulated_example_file(output_filename: str, noise: bool = Fals
     data.tofile(output_filename)
 
 
-def make_fft_positive_freqs_only(sig: np.ndarray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
+@typechecked
+def make_fft_positive_freqs_only(sig: NDArray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
     """
     Computes an fft, returns only the positive frequencies.
     Return value is a tuple: (sample_freqs, fft_mag).

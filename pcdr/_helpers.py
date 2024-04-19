@@ -2,6 +2,7 @@ from typing import List, TypeVar, Union
 from typeguard import typechecked
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 
@@ -59,29 +60,29 @@ def str_to_bin_list(message: str) -> List[int]:
 
 
 @typechecked
-def int_to_bin_list(message: np.ndarray) -> List[int]:
+def int_to_bin_list(message: NDArray) -> List[int]:
     """
     Converts a numpy array of integers to a list of bits. Capable handling of a variety of dtypes.
 
     Examples:
 
-    >>> int_to_bin_list(np.array([0x43],dtype='uint8'))
+    >>> int_to_bin_list(np.array([0x43], dtype=np.uint8))
     [0, 1, 0, 0, 0, 0, 1, 1]
     
-    >>> int_to_bin_list(np.array([0x43,0x42],dtype='uint8'))
+    >>> int_to_bin_list(np.array([0x43, 0x42], dtype=np.uint8))
     [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0]
     
-    >>> int_to_bin_list(np.array([0x4342],dtype='uint16'))
+    >>> int_to_bin_list(np.array([0x4342], dtype=np.uint16))
     [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0]
 	"""
 
-    if ((message.dtype == 'int8')|(message.dtype == 'uint8')):
+    if message.dtype in [np.int8, np.uint8]:
         bitlength = 8
-    elif (((message.dtype == 'int16')|(message.dtype == 'uint16'))):
+    elif message.dtype in [np.int16, np.uint16]:
         bitlength = 16
-    elif (((message.dtype == 'int32')|(message.dtype == 'uint32'))):
+    elif message.dtype in [np.int32, np.uint32]:
         bitlength = 32
-    elif (((message.dtype == 'int64')|(message.dtype == 'uint64'))):
+    elif message.dtype in [np.int64, np.uint64]:
         bitlength = 64
     else:
         raise ValueError("Unsupported dtype")

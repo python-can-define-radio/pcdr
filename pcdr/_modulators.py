@@ -1,6 +1,7 @@
 from typing import List, Iterable, TypeVar, Tuple
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 T = TypeVar('T')
@@ -45,7 +46,7 @@ def __must_be_binary(bits: List[int]) -> None:
                          ' must be either 0 or 1. It cannot be a string, such as "1010".')
 
 
-def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> np.ndarray:
+def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> NDArray:
     """
     OOK Modulate. This is equivalent to simply repeating the bits, that is,
     >>> ook_modulate([1, 0], 3)
@@ -65,7 +66,8 @@ def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> np.ndarray
     return result
 
 
-def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float, freq: float) -> Tuple[np.ndarray, np.ndarray]:
+def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float, freq: float
+                ) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
     """
     OOK Modulate at a given frequency. Returns the timestamps and the modulated data.
 
@@ -95,7 +97,7 @@ def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float
 
     baseband_sig = ook_modulate(bits, bit_length)
     result = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
-    assert result[0].dtype == np.float64
+    assert result[0].dtype == np.float64    # TODO: these may be unnecessary now that I know how to do NDArray type annotations properly
     assert result[1].dtype == np.complex64
     assert len(result[0]) == len(result[1]) == (len(bits) * bit_length)
     return result

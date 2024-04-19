@@ -9,6 +9,7 @@
 # GNU Radio version: 3.8.1.0
 
 import numpy as np
+from numpy.typing import NDArray
 from gnuradio import gr
 from gnuradio import blocks
 import osmosdr
@@ -33,7 +34,7 @@ class vector_to_osmocom_sink(gr.top_block):
 
     @typechecked
     def __init__(self,
-                 data: List[complex],
+                 data: NDArray[np.complex64],
                  center_freq: float,
                  samp_rate: float,
                  if_gain: int,
