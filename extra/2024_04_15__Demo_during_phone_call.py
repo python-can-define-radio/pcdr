@@ -1,5 +1,5 @@
 import time
-from pcdr.flow import OsmosdrSingleFreqReceiver
+from pcdr.flow import OsmoSingleFreqReceiver
 
 def main():
     print("")
@@ -10,7 +10,7 @@ def main():
             print(f"Activity detected! Strength: {st}")
         time.sleep(0.01)
 
-receiver = OsmosdrSingleFreqReceiver("hackrf=0", 463.2e6)
+receiver = OsmoSingleFreqReceiver("hackrf=0", 463.2e6)
 receiver.start_and_run_thread(main)
 
 ####################

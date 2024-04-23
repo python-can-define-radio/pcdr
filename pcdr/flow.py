@@ -1,6 +1,6 @@
 from pcdr._flow_impl import (
-    OsmosdrSingleFreqReceiver,
-    OsmosdrSingleFreqTransmitter,
+    OsmoSingleFreqReceiver,
+    OsmoSingleFreqTransmitter,
     AudioPlayer,
-    OsmosdrWBFMTransmitter,
+    OsmoWBFMTransmitter,
 )

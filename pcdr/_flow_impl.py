@@ -19,17 +19,18 @@ from pcdr._internal.types_and_contracts import HasWorkFunc
 
 
 
-class OsmosdrSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainSettable):
-    """A simplified interface to the Osmosdr Source
-    which measures the strength of only the specified frequency.
+class OsmoSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainSettable):
+    """Measures the strength of only the specified frequency.
+    
     Example usage:
     
     ```python3
-    import pcdr.simple
-    receiver = pcdr.simple.OsmosdrReceiver("hackrf=0", 103.9e6)
+    from pcdr.flow import OsmoSingleFreqReceiver
+    receiver = OsmoSingleFreqReceiver("hackrf=0", 103.9e6)
     recevier.start()
     strength = receiver.get_strength()
     print(strength)
+    recevier.stop_and_wait()
     ```
     """
     @typechecked
@@ -52,7 +53,7 @@ class OsmosdrSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGa
     @typechecked
     def get_strength(self, block: bool = True, timeout: float = 2.0) -> float:
         """Get the signal strength at the current frequency.
-        The frequency is specified when the `OsmosdrReceiver` is created,
+        The frequency is specified when the `OsmoSingleFreqReceiver` is created,
         and can be changed using `set_freq`.
         """
         return self.__streng._reading.get(block, timeout)
@@ -78,18 +79,17 @@ class OsmosdrSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGa
         return retval
 
 
-class OsmosdrSingleFreqTransmitter(Startable, StopAndWaitable,
+class OsmoSingleFreqTransmitter(Startable, StopAndWaitable,
                          IFGainSettable, BBGainSettable,
                          CenterFrequencySettable):
-    """A simplified interface to the Osmosdr Sink
-    which transmits a pure sine wave on the specified frequency.
+    """Transmits a pure sine wave on the specified frequency.
     
     Example usage:
     
     ```python3
-    import pcdr.simple
+    from pcdr.flow import OsmoSingleFreqTransmitter
     import time
-    transmitter = pcdr.simple.OsmosdrTransmitter("hackrf=0", 2.45e9)
+    transmitter = OsmoSingleFreqTransmitter("hackrf=0", 2.45e9)
     transmitter.start()
     transmitter.set_if_gain(37)
     time.sleep(1)
@@ -173,16 +173,18 @@ class AudioPlayer(Startable, StopAndWaitable, Waitable, ProbeReadable):
         self._probe = connect_probe_common(self._tb, src_blk, type_, vecsize)
 
 
-class OsmosdrWBFMTransmitter(Startable, StopAndWaitable, CenterFrequencySettable,
+class OsmoWBFMTransmitter(Startable, StopAndWaitable, CenterFrequencySettable,
                              IFGainSettable, BBGainSettable, Waitable):
     """
+    Transmits Wide-Band Frequency Modulated audio on the specified frequency.
+    
     ```python3
-    import pcdr.simple
+    from pcdr.flow import OsmoWBFMTransmitter
     import time
-    transmitter = pcdr.simple.OsmosdrWBFMTransmitter("hackrf=0", 2.45e9, "pulse_monitor")
+    transmitter = OsmoWBFMTransmitter("hackrf=0", 2.45e9, "pulse_monitor")
     transmitter.start()
     transmitter.set_if_gain(37)
-    time.sleep(10)
+    time.sleep(10)  # During this time, the transmitter is transmitting.
     transmitter.stop_and_wait()
     ```
     """

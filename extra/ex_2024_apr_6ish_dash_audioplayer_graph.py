@@ -1,6 +1,6 @@
-# from pcdr.simple import OsmosdrWBFMTransmitter
+# from pcdr.simple import OsmoWBFMTransmitter
 
-# transmitter = OsmosdrWBFMTransmitter("hackrf=0", 104.3e6, plotly_gui="time_mod")
+# transmitter = OsmoWBFMTransmitter("hackrf=0", 104.3e6, plotly_gui="time_mod")
 # transmitter.set_center_freq(104.5e6)
 # transmitter.set_if_gain(23)
 
