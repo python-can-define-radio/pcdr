@@ -12,6 +12,7 @@ from pcdr._wavegen import (
     multiply_by_real_wave,
     make_fft,
     make_fft_positive_freqs_only,
+    noisify,
 )
 
 from pcdr._helpers import (
