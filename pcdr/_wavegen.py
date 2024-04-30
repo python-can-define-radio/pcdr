@@ -530,10 +530,6 @@ def make_wave(samp_rate: float,
         raise Exception("Impossible case")
 
 
-def makeWave(*args, **kwargs):
-    print("Use make_wave instead.")
-
-
 def wave_and_write(basename: str, timestamps: np.ndarray, freq, complex_or_real: Literal["c", "r"]):
     if complex_or_real == "r":
         data = makeRealWave_basic(timestamps, freq)
