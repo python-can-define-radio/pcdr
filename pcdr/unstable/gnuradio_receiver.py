@@ -3,7 +3,7 @@ import numpy as np
 import time
 from gnuradio import gr
 
-from pcdr._beta.osmocom_queued_rx_flowgraph import osmocom_source_to_queue_sink, file_source_to_queue_sink
+from pcdr.unstable.osmocom_queued_rx_flowgraph import osmocom_source_to_queue_sink, file_source_to_queue_sink
 from pcdr._internal.misc import configure_graceful_exit
 from pcdr._internal.types_and_contracts import SupportsQueueSink
 

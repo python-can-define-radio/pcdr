@@ -7,7 +7,7 @@ from typing import List, Optional, Sequence, TypeVar, Union
 import numpy as np
 from gnuradio import gr
 
-from pcdr._beta.osmocom_queued_tx_flowgraph import queue_to_osmocom_sink, queue_to_print_sink, queue_to_string_file_sink, queue_to_file_sink, queue_to_zmqpub_sink
+from pcdr.unstable.osmocom_queued_tx_flowgraph import queue_to_osmocom_sink, queue_to_print_sink, queue_to_string_file_sink, queue_to_file_sink, queue_to_zmqpub_sink
 from pcdr._internal.misc import SimpleQueueTypeWrapped, queue_to_list, prepend_zeros_, configure_graceful_exit
 from pcdr._internal.vector_tx_flowgraphs import vector_to_file_sink
 from pcdr._internal.types_and_contracts import TRealNum, TRealOrComplexNum

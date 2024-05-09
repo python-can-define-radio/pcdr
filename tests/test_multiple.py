@@ -4,7 +4,7 @@ import hypothesis.extra.numpy as hyponp
 import hypothesis.strategies as st
 import numpy as np
 
-from pcdr._beta.gnuradio_sendlike import _pad_chunk_queue
+from pcdr.unstable.gnuradio_sendlike import _pad_chunk_queue
 from pcdr._internal.misc import queue_to_list
 
 
