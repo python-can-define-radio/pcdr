@@ -19,8 +19,19 @@ class TimeData:
     """The timestamps that correspond to the `y` values."""
     y: NDArray
     """The 'y-values', i.e., the actual data which correspond to the times indicated by `t`."""
+    @property
+    def x(self) -> NDArray[np.float64]:
+        """An alias for t (the timestamps)."""
+        return self.t
+
+    @x.setter
+    def x(self, value: NDArray[np.float64]):
+        """An alias for t (the timestamps)."""
+        self.t = value
+    
 
 @typechecked
+def make_timestamps_seconds(seconds: float, num_samples: int, dtype=np.float64) -> np.ndarray:
     """Creates timestamps from zero up to the given maximum number of seconds.
     Implemented using np.linspace().
     
