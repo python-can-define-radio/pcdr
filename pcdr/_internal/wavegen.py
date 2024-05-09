@@ -7,8 +7,8 @@ from numpy.typing import NDArray
 from typeguard import typechecked
 
 from pcdr._internal.fileio import writeRealCSV, writeComplexCSV
-from pcdr._modulators import ook_modulate
-from pcdr._helpers import str_to_bin_list
+from pcdr._internal.modulators import ook_modulate
+from pcdr._internal.helpers import str_to_bin_list
 
 
 
@@ -20,9 +20,7 @@ class TimeData:
     y: NDArray
     """The 'y-values', i.e., the actual data which correspond to the times indicated by `t`."""
 
-
 @typechecked
-def make_timestamps_seconds(seconds: float, num_samples: int, dtype=np.float64) -> NDArray:
     """Creates timestamps from zero up to the given maximum number of seconds.
     Implemented using np.linspace().
     
