@@ -139,7 +139,7 @@ class OsmoSingleFreqTransmitter(Startable, StopAndWaitable,
         """
         self._tb = create_top_block_and_configure_exit()
         self._osmoargs = get_OsmocomArgs_TX(freq, device_args)
-        self.__constant_source = analog.sig_source_c(self._osmoargs.samp_rate, analog.GR_CONST_WAVE, 0, 0, 3)
+        self.__constant_source = analog.sig_source_c(self._osmoargs.samp_rate, analog.GR_CONST_WAVE, 0, 0, 1)
         self._osmo = configureOsmocom(osmosdr.sink, self._osmoargs)
         self._tb.connect(self.__constant_source, self._osmo)
 
