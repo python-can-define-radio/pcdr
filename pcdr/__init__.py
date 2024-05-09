@@ -4,8 +4,6 @@ from pcdr._modulators import (
 )
 
 from pcdr._wavegen import (
-    make_timestamps,
-    generate_ook_modulated_example_file,
     make_wave,
     multiply_by_complex_wave,
     multiply_by_real_wave,
@@ -16,7 +14,6 @@ from pcdr._wavegen import (
 
 from pcdr._helpers import (
     str_to_bin_list,
-    int_to_bin_list,
 )
 
 try:

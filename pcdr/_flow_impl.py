@@ -3,8 +3,9 @@ from pathlib import Path
 from gnuradio import gr, blocks, analog, audio, filter
 import osmosdr
 import numpy as np
+from numpy.typing import NDArray
 from pcdr._internal.our_GR_blocks import (
-    Blk_strength_at_freq, Blk_VecSingleItemStack
+    Blk_strength_by_mult, Blk_VecSingleItemStack
 )
 import time
 from typeguard import typechecked
@@ -19,7 +20,10 @@ from pcdr._internal.types_and_contracts import HasWorkFunc
 
 
 
-class OsmoSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainSettable):
+class OsmoSingleFreqReceiver(Startable, StopAndWaitable):
+    ## DON'T RE-INCORPORATE SETTING IF GAIN AND BB GAIN UNTIL
+    ## WE HAVE DECIDED HOW TO HANDLE THE NEED OF CONSUMING
+    ## FROM QUEUE
     """Measures the strength of only the specified frequency.
     
     Example usage:
@@ -31,6 +35,17 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainS
     strength = receiver.get_strength()
     print(strength)
     recevier.stop_and_wait()
+    ```
+
+    Example 2: averaging
+    ```python3
+    rec = OsmoSingleFreqReceiver("hackrf=0", 462.57e6)
+    rec.start()
+    avg = 0
+    while True:
+        reading = rec.get_strength()
+        avg = 0.99 * avg + 0.01 * reading
+        print(int(avg*10)*"W")
     ```
     """
     @typechecked
@@ -45,13 +60,13 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainS
         true_freq = freq - self.__freq_offset
         self._osmoargs = get_OsmocomArgs_RX(true_freq, device_args)
         self._osmo = configureOsmocom(osmosdr.source, self._osmoargs)
-        fft_size = 1024        
-        self.__stream_to_vec = blocks.stream_to_vector(gr.sizeof_gr_complex, fft_size)
-        self.__streng = Blk_strength_at_freq(self._osmoargs.samp_rate, self.__freq_offset, fft_size)
+        chunk_size = 1024
+        self.__stream_to_vec = blocks.stream_to_vector(gr.sizeof_gr_complex, chunk_size)
+        self.__streng = Blk_strength_by_mult(self._osmoargs.samp_rate, self.__freq_offset, chunk_size)
         self._tb.connect(self._osmo, self.__stream_to_vec, self.__streng)
         
     @typechecked
-    def get_strength(self, block: bool = True, timeout: float = 2.0) -> float:
+    def get_strength(self, block: bool = True, timeout: float = 2.0) -> np.float32:
         """Get the signal strength at the current frequency.
         The frequency is specified when the `OsmoSingleFreqReceiver` is created,
         and can be changed using `set_freq`.
@@ -59,14 +74,24 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainS
         return self.__streng._reading.get(block, timeout)
     
     @typechecked
-    def set_freq(self, freq: float, seconds: float = 0.5):
+    def set_freq(self, freq: float, *, consume: int):
         """
         Set the frequency of the receiver, then
-        wait `seconds` seconds. This delay allows the buffer to fill with data from the newly chosen frequency.
+        consume `consume` strength readings.
         
-        Note: It's possible that a smaller delay would suffice; we chose a number that would safely guarantee a fresh buffer.
+        How to set `consume`:
+        ---------------------
+
+        **Short answer:** consume=20
+        **Long answer:** The `consume` argument is used to ensure that the strength readings are not
+        based on an old tune frequency. It's very possible that consume=1 would suffice, but we have not done
+        sufficient testing to ensure this. If you'd like to provide any info based on your own experimentation,
+        feel free to post an "Issue" on our github page, github.com/python-can-define-radio/pcdr.
         
-        Implementation detail: Those who are familiar with SDRs may wonder how
+        Implementation details:
+        -----------------------
+        
+        Those who are familiar with SDRs may wonder how
         this avoids the "DC spike". `set_freq` actually tunes below the specified
         frequency (20 kHz below at time of writing). Then, when `get_strength` is run,
         the receiver checks for activity at the expected location (the `freq` specified in this function).
@@ -75,7 +100,8 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable, IFGainSettable, BBGainS
         true_freq = freq - self.__freq_offset
         self._osmoargs.center_freq = true_freq
         retval = self._osmo.set_center_freq(true_freq)
-        time.sleep(seconds)
+        for unused in range(consume):
+            self.get_strength()  # intentionally waste these readings
         return retval
 
 
@@ -117,10 +143,10 @@ class OsmoSingleFreqTransmitter(Startable, StopAndWaitable,
         self._osmo = configureOsmocom(osmosdr.sink, self._osmoargs)
         self._tb.connect(self.__constant_source, self._osmo)
 
-    @typechecked
-    def set_freq(self, freq: float) -> float:
-        """Equivalent to `self.set_center_freq(freq)`, for backwards compatibility."""
-        return self.set_center_freq(freq)
+    # @typechecked
+    # def set_freq(self, freq: float) -> float:
+    #     """Equivalent to `self.set_center_freq(freq)`, for backwards compatibility."""
+    #     return self.set_center_freq(freq)
 
 
 @typechecked
@@ -216,3 +242,41 @@ class OsmoWBFMTransmitter(Startable, StopAndWaitable, CenterFrequencySettable,
         self.__wfm_tx = analog.wfm_tx(self._osmoargs.samp_rate, self._osmoargs.samp_rate)
         self._osmo = configureOsmocom(osmosdr.sink, self._osmoargs)
         self._tb.connect(self.__source, self.__rational_resampler, self.__wfm_tx, self._osmo)
+
+
+class OsmoUnprocessedReceiver(Startable, StopAndWaitable, CenterFrequencySettable):
+    ## DON'T RE-INCORPORATE SETTING IF GAIN AND BB GAIN UNTIL
+    ## WE HAVE DECIDED HOW TO HANDLE THE NEED OF CONSUMING
+    ## FROM QUEUE
+    """
+    Example:
+    
+    from pcdr._beta.flow import OsmoUnprocessedReceiver
+    from pcdr import make_fft
+    import matplotlib.pyplot as plt
+
+    samp_rate = 2e6
+    rec = OsmoUnprocessedReceiver("hackrf=0", 104.1e6, samp_rate, 1024)
+    rec.start()
+    dat = rec.get_reading()
+    rec.stop_and_wait()
+    sample_freqs, fft_mag = make_fft(dat, samp_rate)
+    plt.plot(sample_freqs, fft_mag)
+    plt.show()
+    """
+    @typechecked
+    def __init__(self, device_args: str, freq: float, samp_rate: float, fft_size: int):
+        """
+        `device_args`: For example, "hackrf=0", etc. See the osmocom docs for a full list.
+        `freq`: The frequency which the device will tune to.
+        >>> 
+        """
+        self._tb = create_top_block_and_configure_exit()
+        self._osmoargs = get_OsmocomArgs_RX(freq, device_args)
+        self._osmoargs.samp_rate = samp_rate
+        self._osmo = configureOsmocom(osmosdr.source, self._osmoargs)   
+        self.__stk = Blk_VecSingleItemStack(np.complex64, fft_size)
+        self._tb.connect(self._osmo, self.__stk)
+    
+    def get_reading(self, block: bool = True, timeout: float = 2.0) -> NDArray[np.complex64]:
+        return self.__stk.sis._reading.get(timeout=timeout)

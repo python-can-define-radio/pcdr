@@ -1,5 +1,6 @@
 import random
 from typing import Optional, List, Tuple, Literal
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
@@ -9,6 +10,15 @@ from pcdr._internal.fileio import writeRealCSV, writeComplexCSV
 from pcdr._modulators import ook_modulate
 from pcdr._helpers import str_to_bin_list
 
+
+
+@dataclass
+class TimeData:
+    """Measurements and their associated timestamps."""
+    t: NDArray[np.float64]
+    """The timestamps that correspond to the `y` values."""
+    y: NDArray
+    """The 'y-values', i.e., the actual data which correspond to the times indicated by `t`."""
 
 
 @typechecked
@@ -200,7 +210,7 @@ def _aliasingError(allowAliasing: bool, freq: float, samp_rate: float) -> None:
 
 
 @typechecked
-def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
+def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> TimeData:
     """
     Returns a tuple (timestamps, wave).
     
@@ -245,7 +255,7 @@ def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, al
     timestamps = make_timestamps_seconds(seconds=t, num_samples=num_samples)
     wave = makeComplexWave_basic(timestamps, freq)
     assert len(timestamps) == len(wave) == num_samples
-    return timestamps, wave
+    return TimeData(timestamps, wave)
 
 
 @typechecked
@@ -367,7 +377,7 @@ def make_wave(samp_rate: float,
              type_: Literal["real", "complex"],
              *, seconds: Optional[float] = None,
              num: Optional[float] = None,
-             allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray]:
+             allowAliasing: bool = False) -> TimeData:
     """
     Generate a sine wave and the associated timestamps.
 
@@ -709,67 +719,6 @@ def noisify(data: NDArray, amplitude=1, seed=None) -> NDArray:
     result = data + amplitude * randnoise
     assert result.dtype == data.dtype
     return result
-
-
-@typechecked
-def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None) -> NDArray[np.complex64]:
-    """
-    Generate a file with the given `output_filename`.
-
-    if `noise` is True, random noise will be added to the generated signal.
-    if `message_delay` is True, there will be a pause before the meaningful data starts.
-    if `text_source` is any string, a random sentence from it will be used as the message.
-    
-    Example usage:
-
-    text_content = "These are some words, and more words. There are many words in a row in these sentences."
-    generate_ook_modulated_example_data(text_source=text_content)
-    """
-    message = "This is an example message."
-    if text_source == None:
-        print(f"No text source file specified, so all generated files will contain the message '{message}'")
-    else:
-        sentences = text_source.split(".")
-        message = random.choice(sentences) + "."
-        
-        
-    samp_rate = random.randrange(100, 700, 100)
-    bit_length = random.randrange(50, 3000, 10)
-    freq = random.randrange(10, samp_rate // 5)
-    
-    with_preamb = "«" + message
-    bits = str_to_bin_list(with_preamb)
-    baseband_sig = ook_modulate(bits, bit_length)
-    timestamps, fully_modded = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
-    if message_delay:
-        fully_modded = np.concatenate([
-            np.zeros(random.randint(100, 1500), dtype=np.complex64),
-            fully_modded
-        ])
-    if noise:
-        fully_modded = noisify(fully_modded)
-    
-    assert fully_modded.dtype == np.complex64
-    return fully_modded
-
-
-@typechecked
-def generate_ook_modulated_example_file(output_filename: str, noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None):
-    """
-    Generate a file with the given `output_filename`.
-
-    if `noise` is True, random noise will be added to the generated signal.
-    if `message_delay` is True, there will be a pause before the meaningful data starts.
-    if `text_source` is any string, a random sentence from it will be used as the message.
-    
-    Example usage:
-
-    text_content = "These are some words, and more words. There are many words in a row in these sentences."
-    generate_ook_modulated_example_file("generated_example_file.complex", text_source=text_content)
-    """
-    
-    data = generate_ook_modulated_example_data(noise, message_delay, text_source)
-    data.tofile(output_filename)
 
 
 @typechecked

@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.typing import NDArray
 from gnuradio import gr
 from gnuradio import blocks
 import osmosdr
@@ -185,34 +186,74 @@ class Averager:
 
 
 
-class Blk_strength_at_freq(gr.sync_block):
+# class Blk_strength_at_freq(gr.sync_block):
+#     @typechecked
+#     def __init__(self, samp_rate: float, freq_of_interest: float, fft_size: int):
+#         gr.sync_block.__init__(self,
+#             name='Python Block: Strength at frequency',
+#             in_sig=[(np.complex64, fft_size)],
+#             out_sig=[]
+#         )
+#         assert 0 <= freq_of_interest < samp_rate / 2
+#         maxval = samp_rate/2 - samp_rate/fft_size
+#         ratio = fft_size / (2 * maxval)
+#         self._reading = SingleItemStack()
+#         self._fft = None
+#         self._idx = int(ratio * freq_of_interest)
+    
+#     def work(self, input_items, output_items):
+#         dat = input_items[0][0]
+#         self._fft = abs(np.fft.fft(dat))
+#         self._reading.put(float(self._fft[self._idx]))
+#         return 1
+
+
+class FreqComparisonMultiplier:
     @typechecked
-    def __init__(self, samp_rate: float, freq_of_interest: float, fft_size: int):
+    def __init__(self, samp_rate: float, freq_of_interest: float, chunk_size: int):
+        from pcdr._wavegen import make_wave  # Avoid circular imports
+        wave = make_wave(samp_rate, freq_of_interest, "complex", num=chunk_size)
+        self.__compare_wave: NDArray[np.complex64] = wave.y
+        assert self.__compare_wave.dtype == np.complex64
+    
+    def get_freq_strength(self, dat: NDArray[np.complex64]) -> np.float64:
+        """
+        >>> from pcdr import make_wave
+        >>> samp_rate = 100
+        >>> freq_of_interest = 5
+        >>> chunk_size = 1024
+        >>> fcm = FreqComparisonMultiplier(samp_rate, freq_of_interest, chunk_size)
+        >>> data1 = make_wave(samp_rate, 5, "complex", num=chunk_size)
+        >>> fcm.get_freq_strength(data1)
+        This needs to be filled
+        >>> data2 = make_wave(samp_rate, 10, "complex", num=chunk_size)
+        >>> fcm.get_freq_strength(data2)
+        This needs to be filled
+        """
+        mul = dat * self.__compare_wave
+        su = np.sum(mul, dtype=np.complex64)
+        assert isinstance(su, np.complex64)  # TODO: remove for performance
+        a = np.abs(su)
+        assert isinstance(a, np.float32)  # TODO: remove for performance
+        return a
+
+
+class Blk_strength_by_mult(gr.sync_block):
+    @typechecked
+    def __init__(self, samp_rate: float, freq_of_interest: float, chunk_size: int):
         gr.sync_block.__init__(self,
-            name='Python Block: Strength at frequency',
-            in_sig=[(np.complex64, fft_size)],
+            name='Python Block: Strength at frequency by mult',
+            in_sig=[(np.complex64, chunk_size)],
             out_sig=[]
         )
         assert 0 <= freq_of_interest < samp_rate / 2
-        maxval = samp_rate/2 - samp_rate/fft_size
-        ratio = fft_size / (2 * maxval)
         self._reading = SingleItemStack()
-        self._fft = None
-        self._idx = int(ratio * freq_of_interest)
-        # self.__last_few = []
-        # self._avg_count = avg_count
+        self._freq_comparison_multiplier = FreqComparisonMultiplier(samp_rate, freq_of_interest, chunk_size)
     
     def work(self, input_items, output_items):
         dat = input_items[0][0]
-        self._fft = abs(np.fft.fft(dat))
-        self._reading.put(float(self._fft[self._idx]))
-        # if len(self.__last_few) < self._avg_count:
-        #     fft_val = float(self._fft[self._idx])
-        #     self.__last_few.append(fft_val)
-        # else:
-        #     avg = sum(self.__last_few) / len(self.__last_few)
-        #     self._deq.append(avg)
-        #     self.__last_few = []
+        streng = self._freq_comparison_multiplier.get_freq_strength(dat)
+        self._reading.put(streng)
         return 1
 
 
