@@ -70,6 +70,7 @@ def make_timestamps_samprate(samp_rate: float, num_samples: int, dtype=np.float6
     return result
 
 
+@typechecked
 def make_timestamps():
     raise NotImplementedError("Intended purpose: run either make_timestamps_seconds or make_timestamps_samprate based on provided arguments")
 
@@ -752,8 +753,6 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
     return fully_modded
 
 
-## TODO: 2024 APRIL 18: FINISH ADDING TYPECHECKED AND ALSO CONVERT NDARRAY
-
 @typechecked
 def generate_ook_modulated_example_file(output_filename: str, noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None):
     """
@@ -812,6 +811,7 @@ def make_fft_positive_freqs_only(sig: NDArray, samp_rate: float) -> Tuple[np.nda
     return sample_freqs[halfway:], fft_mag[halfway:]
 
 
+@typechecked
 def make_fft(sig: np.ndarray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns a tuple of (sample_freqs, fft_mag).

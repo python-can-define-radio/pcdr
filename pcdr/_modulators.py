@@ -46,6 +46,8 @@ def __must_be_binary(bits: List[int]) -> None:
                          ' must be either 0 or 1. It cannot be a string, such as "1010".')
 
 
+## Don't typecheck this one for now because we want to allow `bits`
+## to have types that are other valid collections of int such as a numpy array of int
 def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> NDArray:
     """
     OOK Modulate. This is equivalent to simply repeating the bits, that is,
@@ -62,10 +64,12 @@ def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> NDArray:
     """ 
     __must_be_binary(bits)
     result = np.array(__repeat_each_item(bits, bit_length), dtype=dtype)
+    assert isinstance(result, np.ndarray)
     assert result.dtype == dtype
     return result
 
 
+## Don't typecheck this one for now; see note on `ook_modulate`
 def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float, freq: float
                 ) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
     """

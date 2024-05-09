@@ -420,6 +420,7 @@ def connect_probe_common(tb: gr.top_block, src_blk, type_: type, vecsize: int):
     return probe
 
 
+## james-pcdr wants to think about this a bit more before adding @typechecked
 def gnuradio_send(data: np.ndarray,
                   center_freq: float,
                   samp_rate: float,
