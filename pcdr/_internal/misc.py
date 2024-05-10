@@ -41,6 +41,8 @@ class HACKRF_ERRORS:
             "of the following if gain settings: "
             "[0, 1, 2, 3, ..., 45, 46, 47]. "
             f"Your specified if gain was not one of these options.")
+    TX_BB_GAIN = ("The HackRF One, when in transmit mode, does not have a BB Gain."
+            "We chose to require that it be equal to zero to reduce the risk of errors.")
 
 
 @attrs.define
@@ -123,13 +125,13 @@ class HackRFArgs_TX:
     def check(self, attribute, value):
         if value not in range(0, 47+1):
             raise ValueError(HACKRF_ERRORS.TX_IF_GAIN)
-        
-    bb_gain: int = field(default=30)
+    
+    bb_gain: int = field(default=0)
     @bb_gain.validator
     def check(self, attribute, value):
-        if value not in range(0, 62+2, 2):
-            raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
-        
+        if value != 0:
+            raise ValueError(HACKRF_ERRORS.TX_BB_GAIN)
+
     bandwidth: float = field(default=0)
 
 
