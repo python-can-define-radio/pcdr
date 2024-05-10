@@ -106,8 +106,7 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable):
 
 
 class OsmoSingleFreqTransmitter(Startable, StopAndWaitable,
-                         IFGainSettable, BBGainSettable,
-                         CenterFrequencySettable):
+                         IFGainSettable, CenterFrequencySettable):
     """Transmits a pure sine wave on the specified frequency.
     
     Example usage:
