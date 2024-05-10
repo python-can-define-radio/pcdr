@@ -87,7 +87,12 @@ class HackRFArgs_RX:
         if value not in range(0, 62+2, 2):
             raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
         
-    bandwidth: float = field(default=0)
+    bandwidth: float = field()
+
+    @classmethod
+    def init_cf_da(cls, center_freq: float, device_args: str):
+        """Similar to normal __init__, but (a) only center_freq and device_args are allowed to be specified, and (b) sets the bandwidth to 2e6."""
+        return cls(center_freq=center_freq, device_args=device_args, bandwidth=2e6)
     
 
 @attrs.define
@@ -132,7 +137,12 @@ class HackRFArgs_TX:
         if value != 0:
             raise ValueError(HACKRF_ERRORS.TX_BB_GAIN)
 
-    bandwidth: float = field(default=0)
+    bandwidth: float = field()
+
+    @classmethod
+    def init_cf_da(cls, center_freq: float, device_args: str):
+        """Similar to normal __init__, but (a) only center_freq and device_args are allowed to be specified, and (b) sets the bandwidth to 2e6."""
+        return cls(center_freq=center_freq, device_args=device_args, bandwidth=2e6)
 
 
 class CenterFrequencySettable:
