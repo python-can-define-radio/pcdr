@@ -277,7 +277,7 @@ def configureOsmocom(osmo_init_func: Union[osmosdr.source, osmosdr.sink],
     osmo.set_bandwidth(osmoargs.bandwidth)
     return osmo
     
-configureOsmocom()
+
 def configure_graceful_exit(tb: gr.top_block):
     """The portion of GNU Radio boilerplate that 
     catches SIGINT and SIGTERM, and tells the flowgraph
