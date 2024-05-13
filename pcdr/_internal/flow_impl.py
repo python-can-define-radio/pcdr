@@ -31,10 +31,10 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable):
     ```python3
     from pcdr.flow import OsmoSingleFreqReceiver
     receiver = OsmoSingleFreqReceiver("hackrf=0", 103.9e6)
-    recevier.start()
+    receiver.start()
     strength = receiver.get_strength()
     print(strength)
-    recevier.stop_and_wait()
+    receiver.stop_and_wait()
     ```
 
     Example 2: averaging
