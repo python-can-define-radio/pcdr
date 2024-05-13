@@ -3,7 +3,8 @@ import signal
 import sys
 from typing import (
     Union, Type, overload,
-    Literal, Callable, Type, Optional
+    Literal, Callable, Type, Optional,
+    List
 )
 
 import attrs
@@ -59,13 +60,18 @@ class HackRFArgs_RX:
     All others: 
         Documented on the Hack RF FAQ.
     """
+    device_args: str = field()
+
     center_freq: float = field()
     @center_freq.validator
     def check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
-    device_args: str = field()
+    # I would like this to be after everything else, but
+    # I don't know what I should pick as the default, so 
+    # I'm putting it in the mandatory args section.
+    bandwidth: float = field()  
 
     samp_rate: float = field(default=2e6)
     @samp_rate.validator
@@ -86,8 +92,6 @@ class HackRFArgs_RX:
     def check(self, attribute, value):
         if value not in range(0, 62+2, 2):
             raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
-        
-    bandwidth: float = field()
 
     @classmethod
     def init_cf_da(cls, center_freq: float, device_args: str):
@@ -109,13 +113,16 @@ class HackRFArgs_TX:
     All others: 
         Documented on the Hack RF FAQ.
     """
+    device_args: str = field()
+
     center_freq: float = field()
     @center_freq.validator
     def check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
-    device_args: str = field()
+    # See note on HackRFArgs_RX bandwidth
+    bandwidth: float = field()
 
     samp_rate: float = field(default=2e6)
     @samp_rate.validator
@@ -136,8 +143,6 @@ class HackRFArgs_TX:
     def check(self, attribute, value):
         if value != 0:
             raise ValueError(HACKRF_ERRORS.TX_BB_GAIN)
-
-    bandwidth: float = field()
 
     @classmethod
     def init_cf_da(cls, center_freq: float, device_args: str):
@@ -534,3 +539,10 @@ def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"]
     else:
         raise ValueError("not possible because of typechecked")
 
+
+@typechecked
+def connect_run_wait(*blocks):
+    tb = gr.top_block()
+    tb.connect(*blocks)
+    tb.start()
+    tb.wait()
