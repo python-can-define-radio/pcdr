@@ -1,12 +1,13 @@
 from queue import SimpleQueue, Empty, Queue
 import signal
 import sys
+
+from typing import Any
 from typing import (
     Union, Type, overload,
     Literal, Callable, Type, Optional,
     List
 )
-
 import attrs
 from attrs import field, validators
 from gnuradio import gr
@@ -46,6 +47,7 @@ class HACKRF_ERRORS:
             "We chose to require that it be equal to zero to reduce the risk of errors.")
 
 
+
 @attrs.define
 class HackRFArgs_RX:
     """
@@ -64,7 +66,7 @@ class HackRFArgs_RX:
 
     center_freq: float = field()
     @center_freq.validator
-    def check(self, attribute, value):
+    def center_freq_check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
@@ -75,7 +77,7 @@ class HackRFArgs_RX:
 
     samp_rate: float = field(default=2e6)
     @samp_rate.validator
-    def check(self, attribute, value):
+    def samp_rate_check(self, attribute, value):
         if not (2e6 <= value <= 20e6):
             raise ValueError(HACKRF_ERRORS.SAMP_RATE)
 
@@ -83,13 +85,13 @@ class HackRFArgs_RX:
 
     if_gain: int = field(default=24)
     @if_gain.validator
-    def check(self, attribute, value):
+    def if_gain_check(self, attribute, value):
         if value not in range(0, 40+8, 8):
             raise ValueError(HACKRF_ERRORS.RX_IF_GAIN)
         
     bb_gain: int = field(default=30)
     @bb_gain.validator
-    def check(self, attribute, value):
+    def bb_gain_check(self, attribute, value):
         if value not in range(0, 62+2, 2):
             raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
 
@@ -117,7 +119,7 @@ class HackRFArgs_TX:
 
     center_freq: float = field()
     @center_freq.validator
-    def check(self, attribute, value):
+    def center_freq_check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
@@ -126,7 +128,7 @@ class HackRFArgs_TX:
 
     samp_rate: float = field(default=2e6)
     @samp_rate.validator
-    def check(self, attribute, value):
+    def samp_rate_check(self, attribute, value):
         if not (2e6 <= value <= 20e6):
             raise ValueError(HACKRF_ERRORS.SAMP_RATE)
 
@@ -134,13 +136,13 @@ class HackRFArgs_TX:
 
     if_gain: int = field(default=24)
     @if_gain.validator
-    def check(self, attribute, value):
+    def if_gain_check(self, attribute, value):
         if value not in range(0, 47+1):
             raise ValueError(HACKRF_ERRORS.TX_IF_GAIN)
     
     bb_gain: int = field(default=0)
     @bb_gain.validator
-    def check(self, attribute, value):
+    def bb_gain_check(self, attribute, value):
         if value != 0:
             raise ValueError(HACKRF_ERRORS.TX_BB_GAIN)
 
@@ -151,6 +153,7 @@ class HackRFArgs_TX:
 
 
 class CenterFrequencySettable:
+    _osmoargs: Union[HackRFArgs_RX, HackRFArgs_TX]
     @typechecked
     def set_center_freq(self, center_freq: float) -> float:
         ## TODO: how to statically check that osmo has correct type?
@@ -158,27 +161,46 @@ class CenterFrequencySettable:
         return self._osmo.set_center_freq(center_freq)
 
 
-class LockUnlockable:
-    def lock(self):
+class gr_top_block_typed(gr.top_block):
+    """
+    Alias for gr.top_block, with types added
+    """
+    def lock(self) -> Any:
+        """
+        Lock a flowgraph. Effectively "pauses" the flowgraph. 
+        Documented here: https://www.gnuradio.org/doc/doxygen-3.7.4.1/classgr_1_1top__block.html#a1492e3e872707c947999eff942aab8ab
+        """
+        return super().lock()
+
+class TbMethodWrap:
+    """
+    Aliases for typechecking the gr.topblock flowgraph method classes
+    """
+    _tb: gr_top_block_typed
+
+
+
+class LockUnlockable(TbMethodWrap):
+    def lock(self) -> None:
         self._tb.lock()
 
-    def unlock(self):
+    def unlock(self) -> None:
         self._tb.unlock()
 
 
-class Startable:
-    def start(self):
+class Startable(TbMethodWrap):
+    def start(self) -> None:
         self._tb.start()
 
 
-class StopAndWaitable:
-    def stop_and_wait(self):
+class StopAndWaitable(TbMethodWrap):
+    def stop_and_wait(self) -> None:
         self._tb.stop()
         self._tb.wait()
 
 
-class Waitable:
-    def wait(self):
+class Waitable(TbMethodWrap):
+    def wait(self) -> None:
         self._tb.wait()
 
 
@@ -237,7 +259,7 @@ def configureOsmocom(osmo_init_func: Type[osmosdr.sink],
                      osmoargs: OsmocomArgs_TX
                      ) -> osmosdr.sink: ...
 @typechecked
-def configureOsmocom(osmo_init_func,
+def configureOsmocom(osmo_init_func: Union[osmosdr.source, osmosdr.sink],
                      osmoargs: Union[OsmocomArgs_RX, OsmocomArgs_TX]
                      ) -> Union[osmosdr.source, osmosdr.sink]:
     """
@@ -255,7 +277,7 @@ def configureOsmocom(osmo_init_func,
     osmo.set_bandwidth(osmoargs.bandwidth)
     return osmo
     
-
+configureOsmocom()
 def configure_graceful_exit(tb: gr.top_block):
     """The portion of GNU Radio boilerplate that 
     catches SIGINT and SIGTERM, and tells the flowgraph
@@ -273,7 +295,7 @@ def configure_graceful_exit(tb: gr.top_block):
 
 @typechecked
 def create_top_block_and_configure_exit() -> gr.top_block:
-    tb = gr.top_block()
+    tb = gr_top_block_typed()
     configure_graceful_exit(tb)
     return tb
 
