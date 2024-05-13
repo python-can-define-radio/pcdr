@@ -21,3 +21,12 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/python-can-define-radio/pcdr"
 "Bug Tracker" = "https://github.com/python-can-define-radio/pcdr/issues"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+# Temporarily
+allow_redefinition = true
+
+# Temporarily
+disable_error_code = 'no-redef'
