@@ -1,6 +1,7 @@
 from queue import SimpleQueue, Empty, Queue
 import signal
 import sys
+from typing import Any
 from typing import (
     Union, Type, overload,
     Literal, Callable, Type, Optional,
@@ -151,6 +152,7 @@ class HackRFArgs_TX:
 
 
 class CenterFrequencySettable:
+    _osmoargs: Union[HackRFArgs_RX, HackRFArgs_TX]
     @typechecked
     def set_center_freq(self, center_freq: float) -> float:
         ## TODO: how to statically check that osmo has correct type?
@@ -158,27 +160,46 @@ class CenterFrequencySettable:
         return self._osmo.set_center_freq(center_freq)
 
 
-class LockUnlockable:
-    def lock(self):
+class gr_top_block_typed(gr.top_block):
+    """
+    Alias for gr.top_block, with types added
+    """
+    def lock(self) -> Any:
+        """
+        Lock a flowgraph. Effectively "pauses" the flowgraph. 
+        Documented here: https://www.gnuradio.org/doc/doxygen-3.7.4.1/classgr_1_1top__block.html#a1492e3e872707c947999eff942aab8ab
+        """
+        return super().lock()
+
+class TbMethodWrap:
+    """
+    Aliases for typechecking the gr.topblock flowgraph method classes
+    """
+    _tb: gr_top_block_typed
+
+
+
+class LockUnlockable(TbMethodWrap):
+    def lock(self) -> None:
         self._tb.lock()
 
-    def unlock(self):
+    def unlock(self) -> None:
         self._tb.unlock()
 
 
-class Startable:
-    def start(self):
+class Startable(TbMethodWrap):
+    def start(self) -> None:
         self._tb.start()
 
 
-class StopAndWaitable:
-    def stop_and_wait(self):
+class StopAndWaitable(TbMethodWrap):
+    def stop_and_wait(self) -> None:
         self._tb.stop()
         self._tb.wait()
 
 
-class Waitable:
-    def wait(self):
+class Waitable(TbMethodWrap):
+    def wait(self) -> None:
         self._tb.wait()
 
 
@@ -237,7 +258,7 @@ def configureOsmocom(osmo_init_func: Type[osmosdr.sink],
                      osmoargs: OsmocomArgs_TX
                      ) -> osmosdr.sink: ...
 @typechecked
-def configureOsmocom(osmo_init_func,
+def configureOsmocom(osmo_init_func: Union[osmosdr.source, osmosdr.sink],
                      osmoargs: Union[OsmocomArgs_RX, OsmocomArgs_TX]
                      ) -> Union[osmosdr.source, osmosdr.sink]:
     """
@@ -255,7 +276,7 @@ def configureOsmocom(osmo_init_func,
     osmo.set_bandwidth(osmoargs.bandwidth)
     return osmo
     
-
+configureOsmocom()
 def configure_graceful_exit(tb: gr.top_block):
     """The portion of GNU Radio boilerplate that 
     catches SIGINT and SIGTERM, and tells the flowgraph
@@ -273,7 +294,7 @@ def configure_graceful_exit(tb: gr.top_block):
 
 @typechecked
 def create_top_block_and_configure_exit() -> gr.top_block:
-    tb = gr.top_block()
+    tb = gr_top_block_typed()
     configure_graceful_exit(tb)
     return tb
 
