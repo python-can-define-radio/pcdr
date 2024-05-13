@@ -1,13 +1,13 @@
 from queue import SimpleQueue, Empty, Queue
 import signal
 import sys
+
 from typing import Any
 from typing import (
     Union, Type, overload,
     Literal, Callable, Type, Optional,
     List
 )
-
 import attrs
 from attrs import field, validators
 from gnuradio import gr
@@ -47,6 +47,7 @@ class HACKRF_ERRORS:
             "We chose to require that it be equal to zero to reduce the risk of errors.")
 
 
+
 @attrs.define
 class HackRFArgs_RX:
     """
@@ -65,7 +66,7 @@ class HackRFArgs_RX:
 
     center_freq: float = field()
     @center_freq.validator
-    def check(self, attribute, value):
+    def center_freq_check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
@@ -76,7 +77,7 @@ class HackRFArgs_RX:
 
     samp_rate: float = field(default=2e6)
     @samp_rate.validator
-    def check(self, attribute, value):
+    def samp_rate_check(self, attribute, value):
         if not (2e6 <= value <= 20e6):
             raise ValueError(HACKRF_ERRORS.SAMP_RATE)
 
@@ -84,13 +85,13 @@ class HackRFArgs_RX:
 
     if_gain: int = field(default=24)
     @if_gain.validator
-    def check(self, attribute, value):
+    def if_gain_check(self, attribute, value):
         if value not in range(0, 40+8, 8):
             raise ValueError(HACKRF_ERRORS.RX_IF_GAIN)
         
     bb_gain: int = field(default=30)
     @bb_gain.validator
-    def check(self, attribute, value):
+    def bb_gain_check(self, attribute, value):
         if value not in range(0, 62+2, 2):
             raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
 
@@ -118,7 +119,7 @@ class HackRFArgs_TX:
 
     center_freq: float = field()
     @center_freq.validator
-    def check(self, attribute, value):
+    def center_freq_check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
@@ -127,7 +128,7 @@ class HackRFArgs_TX:
 
     samp_rate: float = field(default=2e6)
     @samp_rate.validator
-    def check(self, attribute, value):
+    def samp_rate_check(self, attribute, value):
         if not (2e6 <= value <= 20e6):
             raise ValueError(HACKRF_ERRORS.SAMP_RATE)
 
@@ -135,13 +136,13 @@ class HackRFArgs_TX:
 
     if_gain: int = field(default=24)
     @if_gain.validator
-    def check(self, attribute, value):
+    def if_gain_check(self, attribute, value):
         if value not in range(0, 47+1):
             raise ValueError(HACKRF_ERRORS.TX_IF_GAIN)
     
     bb_gain: int = field(default=0)
     @bb_gain.validator
-    def check(self, attribute, value):
+    def bb_gain_check(self, attribute, value):
         if value != 0:
             raise ValueError(HACKRF_ERRORS.TX_BB_GAIN)
 
