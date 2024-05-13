@@ -235,7 +235,7 @@ OsmocomArgs_TX = HackRFArgs_TX
 @typechecked
 def get_OsmocomArgs_RX(center_freq: float, device_args: str) -> OsmocomArgs_RX:
     if device_args.startswith("hackrf="):
-        return HackRFArgs_RX(center_freq, device_args)
+        return HackRFArgs_RX.init_cf_da(center_freq, device_args)
     else:
         raise NotImplementedError("In the current implementation, device_args must "
                                   "start with 'hackrf=', for example, 'hackrf=0'.")
@@ -244,7 +244,7 @@ def get_OsmocomArgs_RX(center_freq: float, device_args: str) -> OsmocomArgs_RX:
 @typechecked
 def get_OsmocomArgs_TX(center_freq: float, device_args: str) -> OsmocomArgs_TX:
     if device_args.startswith("hackrf="):
-        return HackRFArgs_TX(center_freq, device_args)
+        return HackRFArgs_TX.init_cf_da(center_freq, device_args)
     else:
         raise NotImplementedError("In the current implementation, device_args must "
                                   "start with 'hackrf=', for example, 'hackrf=0'.")
