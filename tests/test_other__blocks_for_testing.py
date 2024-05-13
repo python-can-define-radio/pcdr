@@ -1,12 +1,12 @@
 from typing import List
 from io import StringIO
-import time
 from unittest.mock import patch
-from gnuradio import gr, analog
+from gnuradio import gr, analog, blocks
 import numpy as np
 from typeguard import typechecked
 from pcdr._internal.our_GR_blocks import Blk_sink_print
 from pcdr._internal.basictermplot import plot
+from pcdr._internal.misc import getSize, connect_run_wait
 
 
 
@@ -23,22 +23,22 @@ class Blk_mult_three(gr.sync_block):
 
 
 class Blk_source_output_arb_num(gr.sync_block):
+    """Outputs 0, 1, 2, 3, ... (as np.float32)"""
     def __init__(self):
-        gr.sync_block.__init__(self, name='Source: the number 213', in_sig=[], out_sig=[np.float32])
+        gr.sync_block.__init__(self, name="", in_sig=[], out_sig=[np.float32])
         self.i = 0
 
     def work(self, input_items, output_items):
         output_items[0][0] = self.i
-        output_items[0][1] = self.i + 1
-        output_items[0][2] = self.i + 2
-        self.i += 3
-        return 3
+        self.i += 1
+        return 1
 
 
 class Blk_arb_num_multiplied_by_three(gr.hier_block2):
     def __init__(self):
         """
         A simple hier block that outputs 0, 3, 6, ...; largely for a model for others.
+        type: np.float32
         """
         gr.hier_block2.__init__(
             self, 
@@ -95,62 +95,73 @@ class Blk_fake_osmosdr_source(gr.hier_block2):
         pass
 
 
-@patch('sys.stdout', new_callable=StringIO)
-def test_Blk_source_output_arb_num(output: StringIO):
-    tb = gr.top_block()
-    arb = Blk_source_output_arb_num()
-    pri = Blk_sink_print()
-    tb.connect(arb, pri)
-    tb.start()
-    time.sleep(0.3)
-    tb.stop()
-    tb.wait()
-    outv = output.getvalue()
-    assert len(outv) > 0
-    spl = outv.split("\n")
-    assert len(spl) > 0
-    assert spl[:4] == [
-        '0.0', '1.0', '2.0', '3.0'
-    ]
+class Blk_capture_as_list(gr.sync_block):
+    @typechecked
+    def __init__(self, type_: type, output: list):
+        gr.sync_block.__init__(self, name="", in_sig=[type_], out_sig=[])
+        self.captured = output
+
+    def work(self, input_items, output_items):
+        self.captured.append(input_items[0][0])
+        return 1
+
+
+def test_Blk_source_output_arb_num():
+    numSamples = 4  # arbitrary
+    output = []
+    connect_run_wait(
+        Blk_source_output_arb_num(),
+        blocks.head(getSize(np.float32), numSamples),
+        Blk_capture_as_list(np.float32, output)
+    )
+    eq: np.ndarray = (
+          np.array(output) ==
+          np.array([0.0, 1.0, 2.0, 3.0], dtype=np.float32))
+    assert eq.all()
+
     
 
 @patch('sys.stdout', new_callable=StringIO)
 def test_Blk_arb_num_multiplied_by_three(output: StringIO):
+    numSamples = 4  # arbitrary
     tb = gr.top_block()
     arb3 = Blk_arb_num_multiplied_by_three()
+    hea = blocks.head(getSize(np.float32), numSamples)
     pri = Blk_sink_print()
-    tb.connect(arb3, pri)
+    tb.connect(arb3, hea, pri)
     tb.start()
-    time.sleep(0.3)
-    tb.stop()
     tb.wait()
     outv = output.getvalue()
     assert len(outv) > 0
-    spl = outv.split("\n")
-    assert len(spl) > 0
-    assert spl[:4] == [
+    spl_nolast = outv.split("\n")[:-1]
+    assert len(spl_nolast) == numSamples
+    assert spl_nolast[:4] == [
         '0.0', '3.0', '6.0', '9.0'
     ]
 
 
-@patch('sys.stdout', new_callable=StringIO)
-def test_Blk_fake_osmosdr_source(output: StringIO):
+
+def test_Blk_fake_osmosdr_source():
     fake_center_freq = 170e3
+    numSamples = 50  # arbitrary
     tb = gr.top_block()
     osm = Blk_fake_osmosdr_source(2e6, fake_center_freq)
+    hea = blocks.head(getSize(np.complex64), numSamples)
     pri = Blk_sink_print(dtype=np.complex64)
-    tb.connect(osm, pri)
-    tb.start()
-    time.sleep(0.3)
-    tb.stop()
-    tb.wait()
+    tb.connect(osm, hea, pri)
+    output = StringIO()
+    with patch('sys.stdout', output):
+        tb.start()
+        tb.wait()
     outv = output.getvalue()
     assert len(outv) > 0
-    spl = outv.split("\n")
-    assert len(spl) > 0
-    parsed = np.array(list(map(complex, spl[:50])))
+    spl_nolast = outv.split("\n")[:-1]
+    assert len(spl_nolast) == numSamples
+    parsed = np.array(list(map(complex, spl_nolast)))
     plotOutput = StringIO()
-    plot(np.array(range(len(parsed))), parsed.real, output_stream=plotOutput)
+    x = np.array(range(len(parsed)))
+    y = parsed.real
+    plot(x, y, output_stream=plotOutput)
     ## TODO: I haven't verified that the wave has the right frequency.
     assert plotOutput.getvalue() == """\
 xmin: 0.00
