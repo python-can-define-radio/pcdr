@@ -3,10 +3,17 @@ from io import StringIO
 from unittest.mock import patch
 from gnuradio import gr, analog, blocks
 import numpy as np
-from typeguard import typechecked
+from typeguard import typechecked, TypeCheckError
 from pcdr._internal.our_GR_blocks import Blk_sink_print
 from pcdr._internal.basictermplot import plot
 from pcdr._internal.misc import getSize, connect_run_wait
+import pytest
+from itertools import count
+from hypothesis import given, strategies as st, settings
+from datetime import timedelta
+
+
+
 
 
 
@@ -99,27 +106,95 @@ class Blk_capture_as_list(gr.sync_block):
     @typechecked
     def __init__(self, type_: type, output: list):
         gr.sync_block.__init__(self, name="", in_sig=[type_], out_sig=[])
-        self.captured = output
+        self.captured: list = output
+        self.type_ = type_ 
 
     def work(self, input_items, output_items):
-        self.captured.append(input_items[0][0])
+        i00 = input_items[0][0]
+        assert isinstance(i00, self.type_)
+        self.captured.append(i00)
         return 1
 
 
-def test_Blk_source_output_arb_num():
-    numSamples = 4  # arbitrary
-    output = []
-    connect_run_wait(
-        Blk_source_output_arb_num(),
-        blocks.head(getSize(np.float32), numSamples),
-        Blk_capture_as_list(np.float32, output)
-    )
-    eq: np.ndarray = (
-          np.array(output) ==
-          np.array([0.0, 1.0, 2.0, 3.0], dtype=np.float32))
-    assert eq.all()
-
+@typechecked
+def first_n_match(src_blk, output_type: type, n: int, compare: list):
+    assert hasattr(src_blk, "work")
     
+    # This is actually a List[output_type], but mypy doesn't like that
+    output: list = []  # type: ignore[var-annotated]
+    connect_run_wait(
+        src_blk,
+        blocks.head(getSize(output_type), n),
+        Blk_capture_as_list(output_type, output)
+    )
+    assert all(map(lambda x: isinstance(x, output_type), output))
+    assert len(output) == len(compare)
+    cmpnp = np.array(compare, dtype=output_type)        
+    for actual, expected, idx in zip(output, cmpnp, count()):
+        assert isinstance(actual, output_type)
+        assert isinstance(expected, output_type)
+        assert actual == expected, f"Error at idx {idx}: Act {actual}, Exp {expected}"
+
+
+
+def test_first_n_match_1():
+    with pytest.raises(TypeCheckError):
+        first_n_match(
+            "stuff",  # not a block
+            np.float32,
+            4,
+            np.array([0, 1, 2, 3]))
+
+
+def test_first_n_match_2():
+    with pytest.raises(RuntimeError):
+        first_n_match(
+            Blk_source_output_arb_num(),
+            np.complex64,  # wrong type
+            4,  
+            [0, 1, 2, 3]  
+        )
+
+
+def test_first_n_match_3():
+    with pytest.raises(AssertionError):
+        first_n_match(
+            Blk_source_output_arb_num(),
+            np.float32,
+            5,  # wrong length
+            [0, 1, 2, 3]  
+        )
+
+
+def test_first_n_match_4():
+    with pytest.raises(AssertionError):
+        first_n_match(
+            Blk_source_output_arb_num(),
+            np.float32,
+            4,
+            [0, 1, 2, 5]  # wrong data
+        )
+
+
+def test_Blk_source_output_arb_num_1():
+    first_n_match(
+        Blk_source_output_arb_num(),
+        np.float32,
+        4,
+        [0, 1, 2, 3]
+    )
+
+
+@given(st.integers(min_value=2, max_value=20))
+@settings(max_examples=10, deadline=timedelta(milliseconds=500))
+def test_Blk_source_output_arb_num_1(n: int):
+    first_n_match(
+        Blk_source_output_arb_num(),
+        np.float32,
+        n,
+        list(range(n))
+    )
+
 
 @patch('sys.stdout', new_callable=StringIO)
 def test_Blk_arb_num_multiplied_by_three(output: StringIO):
