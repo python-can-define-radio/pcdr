@@ -446,7 +446,7 @@ def getSize(dtype: type) -> int:
     elif dtype == np.uint8:
         return gr.sizeof_char
     else:
-        return NotImplementedError("Feel free to add more dtype matches")
+        raise NotImplementedError("Feel free to add more dtype matches")
 
 
 @typechecked

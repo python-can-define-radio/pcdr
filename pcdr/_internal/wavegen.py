@@ -132,8 +132,9 @@ def makeRealWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.float32]:
     ~███████████████o██████oo████████████████o██████oo█
     ~████████████████oooooo███████████████████oooooo███
     """
-    result = np.float32(np.sin(freq * 2 * np.pi * timestamps))
+    result = np.sin(freq * 2 * np.pi * timestamps, dtype=np.float32)
     assert timestamps.shape == result.shape
+    assert result.dtype == np.float32
     return result
 
 
@@ -178,8 +179,9 @@ def makeComplexWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.comple
     ## to know if freq should be restricted to real, but I figured
     ## it was better to type-annotate it as `float` rather than leaving
     ## it as `Any`.
-    result = np.complex64(np.exp(1j * freq * 2 * np.pi * timestamps))
+    result = np.exp(1j * freq * 2 * np.pi * timestamps, dtype=np.complex64)
     assert timestamps.shape == result.shape
+    assert result.dtype == np.complex64
     return result
 
 
@@ -268,7 +270,7 @@ def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, al
 
 
 @typechecked
-def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.float32]]:
+def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> TimeData:
     """
     Return a Real wave.
 
@@ -298,10 +300,10 @@ def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allow
     timestamps = make_timestamps_seconds(seconds=t, num_samples=num_samples)
     wave = makeRealWave_basic(timestamps, freq)
     assert len(timestamps) == len(wave) == num_samples
-    return timestamps, wave
+    return TimeData(timestamps, wave)
 
 
-def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
+def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> TimeData:
     """
     Returns a tuple (timestamps, wave).
     
@@ -345,10 +347,10 @@ def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAli
     timestamps = make_timestamps_seconds(seconds, num_samples)
     wave = makeComplexWave_basic(timestamps, freq)
     assert len(timestamps) == len(wave) == num_samples
-    return timestamps, wave
+    return TimeData(timestamps, wave)
 
 
-def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.float32]]:
+def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> TimeData:
     """
     Return a Real wave.
 
@@ -377,7 +379,7 @@ def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasi
     timestamps = make_timestamps_seconds(seconds, num_samples)
     wave = makeRealWave_basic(timestamps, freq)
     assert len(timestamps) == len(wave) == num_samples
-    return timestamps, wave
+    return TimeData(timestamps, wave)
 
 
 @typechecked
@@ -385,7 +387,7 @@ def make_wave(samp_rate: float,
              freq: float,
              type_: Literal["real", "complex"],
              *, seconds: Optional[float] = None,
-             num: Optional[float] = None,
+             num: Optional[int] = None,
              allowAliasing: bool = False) -> TimeData:
     """
     Generate a sine wave and the associated timestamps.
@@ -533,6 +535,7 @@ def make_wave(samp_rate: float,
     elif seconds == None and num == None:
         raise ValueError("Must specify either `seconds` or `num`")
     elif seconds != None:
+        assert isinstance(seconds, float)
         if type_ == "real":
             return makeRealWave_time(seconds, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
@@ -540,6 +543,7 @@ def make_wave(samp_rate: float,
         else:
             raise ValueError("This will never happen if the @typechecked works")
     elif num != None:
+        assert isinstance(num, int)
         if type_ == "real":
             return makeRealWave_numsamps(num, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
@@ -552,11 +556,11 @@ def make_wave(samp_rate: float,
 
 def wave_and_write(basename: str, timestamps: np.ndarray, freq, complex_or_real: Literal["c", "r"]):
     if complex_or_real == "r":
-        data = makeRealWave_basic(timestamps, freq)
+        data: NDArray[np.float32] = makeRealWave_basic(timestamps, freq)
         writeRealCSV(basename + ".csv", data)
         data.tofile(basename + ".float32")
     elif complex_or_real == "c":
-        data = makeComplexWave_basic(timestamps, freq)
+        data: NDArray[np.complex64] = makeComplexWave_basic(timestamps, freq)
         writeComplexCSV(basename + ".csv", data)
         data.tofile(basename + ".complex64")
     else:
@@ -594,7 +598,7 @@ def wave_file_gen_prompts():
     print("Done writing files.")
 
 
-def wave_file_gen(samp_rate: float, max_time: float, freq: float, complex_or_real: str, filename: str = 'generated_data'):
+def wave_file_gen(samp_rate: float, max_time: float, freq: float, complex_or_real: Literal["c", "r"], filename: str = 'generated_data'):
     """Units:
     samp_rate: samples per sec
     max_time: seconds
@@ -602,9 +606,10 @@ def wave_file_gen(samp_rate: float, max_time: float, freq: float, complex_or_rea
     complex_or_real: 'c' or 'r'
     """
     
-    num_samples = samp_rate * max_time
+    num_samples_f = samp_rate * max_time
+    num_samples = int(num_samples_f)
 
-    if int(num_samples) != num_samples:
+    if num_samples != num_samples_f:
         raise ValueError(f"The number of samples would be {num_samples}, but a partial sample is meaningless.\nPlease pick a sample rate and an amount of time whose product is an integer.")
 
     timestamps = make_timestamps_seconds(max_time, num_samples)
@@ -613,7 +618,7 @@ def wave_file_gen(samp_rate: float, max_time: float, freq: float, complex_or_rea
 
 
 @typechecked
-def multiply_by_complex_wave(baseband_sig: NDArray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
+def multiply_by_complex_wave(baseband_sig: NDArray, samp_rate: float, freq: float, allowAliasing: bool = False) -> TimeData:
     """
     Returns a tuple (timestamps, mult).
 
@@ -635,16 +640,16 @@ def multiply_by_complex_wave(baseband_sig: NDArray, samp_rate: float, freq: floa
     ~███████████oo███████oo██████████████████████████████████████████
     ~█████████████ooooooo████████████████████████████████████████████
     """
-    timestamps, wave = makeComplexWave_numsamps(len(baseband_sig), samp_rate, freq, allowAliasing)
-    mult = np.complex64(baseband_sig) * wave
-    assert len(timestamps) == len(mult) == len(baseband_sig)
-    assert timestamps.dtype == np.float64
+    wave = makeComplexWave_numsamps(len(baseband_sig), samp_rate, freq, allowAliasing)
+    mult = np.complex64(baseband_sig) * wave.y
+    assert len(wave.t) == len(mult) == len(wave.y)
+    assert wave.t.dtype == np.float64
     assert mult.dtype == np.complex64
-    return timestamps, mult
+    return TimeData(wave.t, mult)
 
 
 @typechecked
-def multiply_by_real_wave(baseband_sig: NDArray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[NDArray[np.float64], NDArray[np.float32]]:
+def multiply_by_real_wave(baseband_sig: NDArray, samp_rate: float, freq: float, allowAliasing: bool = False) -> TimeData:
     """
     Returns a tuple (timestamps, mult).
 
@@ -666,12 +671,12 @@ def multiply_by_real_wave(baseband_sig: NDArray, samp_rate: float, freq: float, 
     ~███████████████████oo███████oo██████████████████████████████████
     ~█████████████████████ooooooo████████████████████████████████████
     """
-    timestamps, wave = makeRealWave_numsamps(len(baseband_sig), samp_rate, freq, allowAliasing)
-    mult = np.float32(baseband_sig) * wave
-    assert len(timestamps) == len(mult) == len(baseband_sig)
-    assert timestamps.dtype == np.float64
+    wave = makeRealWave_numsamps(len(baseband_sig), samp_rate, freq, allowAliasing)
+    mult = np.float32(baseband_sig) * wave.y
+    assert len(wave.t) == len(mult) == len(wave.y)
+    assert wave.t.dtype == np.float64
     assert mult.dtype == np.float32
-    return timestamps, mult
+    return TimeData(wave.t, mult)
 
 
 @typechecked
@@ -690,10 +695,10 @@ def random_normal(size: int, dtype=np.float32, seed=None) -> NDArray:
     rng = np.random.default_rng(seed=seed)
     re = rng.standard_normal(size=size, dtype=np.float32)
     if dtype == np.float32:
-        result = re
+        result = rng.standard_normal(size=size, dtype=np.float32)
     elif dtype == np.complex64:
         im = 1j * rng.standard_normal(size=size, dtype=np.float32)
-        result = re + im
+        result = re + im  # type: ignore[assignment]
     else:
         raise NotImplementedError()
     assert isinstance(result, np.ndarray)
@@ -721,7 +726,7 @@ def noisify(data: NDArray, amplitude=1, seed=None) -> NDArray:
     elif data.dtype == np.complex64:
         randnoisereal = np.complex64(random_normal(len(data), dtype=np.float32, seed=seed))
         randnoiseimag = np.complex64(random_normal(len(data), dtype=np.float32, seed=seed))
-        randnoise = randnoisereal + (1j * randnoiseimag)
+        randnoise = randnoisereal + (1j * randnoiseimag)  # type: ignore[assignment]
     else:
         raise NotImplementedError("Currently, this only works for these dtypes: float32, complex64.")
     assert randnoise.dtype == data.dtype

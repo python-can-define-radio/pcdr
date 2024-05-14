@@ -42,8 +42,8 @@ def __readCSV(filename_csv: str, samp_rate: float, type_: Callable) -> Tuple[np.
 
 
 def readRealCSV(filename_csv: str, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
-    __readCSV(filename_csv, samp_rate, float)
+    return __readCSV(filename_csv, samp_rate, float)
 
 
 def readComplexCSV(filename_csv: str, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
-    __readCSV(filename_csv, samp_rate, complex)
+    return __readCSV(filename_csv, samp_rate, complex)

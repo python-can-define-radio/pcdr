@@ -3,7 +3,7 @@ from typing import Optional
 from numpy.typing import NDArray
 import numpy as np
 from typeguard import typechecked
-from pcdr import str_to_bin_list, ook_modulate, multiply_by_complex_wave, noisify
+from pcdr.unstable import str_to_bin_list, ook_modulate, multiply_by_complex_wave, noisify
 
 
 
@@ -25,6 +25,7 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
     if text_source == None:
         print(f"No text source file specified, so all generated files will contain the message '{message}'")
     else:
+        assert isinstance(text_source, str)
         sentences = text_source.split(".")
         message = random.choice(sentences) + "."
         
@@ -36,17 +37,26 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
     with_preamb = "«" + message
     bits = str_to_bin_list(with_preamb)
     baseband_sig = ook_modulate(bits, bit_length)
-    timestamps, fully_modded = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
-    if message_delay:
-        fully_modded = np.concatenate([
-            np.zeros(random.randint(100, 1500), dtype=np.complex64),
-            fully_modded
-        ])
-    if noise:
-        fully_modded = noisify(fully_modded)
+    fully_modded = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
     
-    assert fully_modded.dtype == np.complex64
-    return fully_modded
+    if message_delay:
+        fm2 = np.concatenate([
+            np.zeros(random.randint(100, 1500), dtype=np.complex64),
+            fully_modded.y
+        ])
+    else:
+        fm2 = fully_modded
+
+    assert isinstance(fm2, np.ndarray)
+    assert fm2.dtype == np.complex64
+
+    if noise:
+        fm3 = noisify(fm2)
+    else:
+        fm3 = fm2
+    
+    assert fm3.dtype == np.complex64
+    return fm3
 
 
 @typechecked
