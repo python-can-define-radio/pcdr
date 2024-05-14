@@ -64,7 +64,7 @@ def configure_graceful_exit(tb: gr.top_block):
 class vector_to_osmocom_sink(gr.top_block):
 
     def __init__(self,
-                 data: Tuple[complex],
+                 data: Tuple[complex, ...],
                  center_freq: float,
                  samp_rate: float,
                  if_gain: int,

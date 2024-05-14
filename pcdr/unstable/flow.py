@@ -1,4 +1,4 @@
-from pcdr.unstable.flow import (
+from pcdr._internal.flow_impl import (
     OsmoUnprocessedReceiver,
     AudioPlayer,
 )

@@ -140,11 +140,11 @@ class OsmosdrReceiver:
         return retval
 
     @typechecked
-    def set_if_gain(self, if_gain: float):
+    def set_if_gain(self, if_gain: int):
         validate_hack_rf_receive("hackrf", if_gain=if_gain)
         self.osmo_source.set_if_gain(if_gain)
 
     @typechecked
-    def set_bb_gain(self, bb_gain: float):
+    def set_bb_gain(self, bb_gain: int):
         validate_hack_rf_receive("hackrf", bb_gain=bb_gain)
         self.osmo_source.set_bb_gain(bb_gain)

@@ -58,7 +58,7 @@ def _compute_chunk_size(samp_rate: float, chunk_size: Optional[int]) -> int:
     >>> _compute_chunk_size(321, 300)
     300
     """
-    if chunk_size != None:
+    if chunk_size is not None:
         return chunk_size
     divby = 10
     if samp_rate % divby != 0:
@@ -108,41 +108,41 @@ class _QueuedSink:
         self.__source_q.marked_done = True
         
 
-class file_sink(_QueuedSink):
-    @typechecked
-    def __init__(self,
-                 dtype: type,
-                 filename: str,
-                 append: bool = False,
-                 unbuffered: bool = False,
-                 *, samp_rate: float,
-                 chunk_size: Optional[int] = None,
-                 timeout: Optional[float] = None):
-        chunk_size = _compute_chunk_size(samp_rate, chunk_size)
-        assert "NEED TO UPDATE THE INIT. NEED TO DECIDE ABOUT AUTOSTART." == False
-        super().__init__(
-            blocks.file_sink(getSize(dtype), filename, append),
-            dtype,
-            chunk_size,
-            timeout)
-        self._sink.set_unbuffered(unbuffered)
+# class file_sink(_QueuedSink):
+#     @typechecked
+#     def __init__(self,
+#                  dtype: type,
+#                  filename: str,
+#                  append: bool = False,
+#                  unbuffered: bool = False,
+#                  *, samp_rate: float,
+#                  chunk_size: Optional[int] = None,
+#                  timeout: Optional[float] = None):
+#         chunk_size = _compute_chunk_size(samp_rate, chunk_size)
+#         assert "NEED TO UPDATE THE INIT. NEED TO DECIDE ABOUT AUTOSTART." == False
+#         super().__init__(
+#             blocks.file_sink(getSize(dtype), filename, append),
+#             dtype,
+#             chunk_size,
+#             timeout)
+#         self._sink.set_unbuffered(unbuffered)
 
 
-class wavfile_sink(_QueuedSink):
-    @typechecked
-    def __init__(self,
-                 filename: str,
-                 n_channels: int = 1,
-                 sample_rate: int = 48000,
-                 format = "blocks.FORMAT_WAV",   # TODO fix
-                 subformat = "blocks.FORMAT_PCM_16",  # TODO fix
-                 append: bool = False,
-                 *, chunk_size: int):
-        chunk_size = _compute_chunk_size(sample_rate, chunk_size)
-        super().__init__(
-            blocks.wavfile_sink(filename, n_channels, sample_rate, format, subformat, append),
-            np.float32,
-            chunk_size)
+# class wavfile_sink(_QueuedSink):
+#     @typechecked
+#     def __init__(self,
+#                  filename: str,
+#                  n_channels: int = 1,
+#                  sample_rate: int = 48000,
+#                  format = "blocks.FORMAT_WAV",   # TODO fix
+#                  subformat = "blocks.FORMAT_PCM_16",  # TODO fix
+#                  append: bool = False,
+#                  *, chunk_size: int):
+#         chunk_size = _compute_chunk_size(sample_rate, chunk_size)
+#         super().__init__(
+#             blocks.wavfile_sink(filename, n_channels, sample_rate, format, subformat, append),
+#             np.float32,
+#             chunk_size)
 
 
 class osmosdr_sink(_QueuedSink):

@@ -100,7 +100,7 @@ def makeRealWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
     ~███████████████o██████oo████████████████o██████oo█
     ~████████████████oooooo███████████████████oooooo███
     """
-    result = np.float32(np.sin(freq * 2 * np.pi * timestamps))
+    result = np.sin(freq * 2 * np.pi * timestamps, dtype=np.float32)
     assert timestamps.shape == result.shape
     return result
 
@@ -145,7 +145,7 @@ def makeComplexWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
     ## to know if freq should be restricted to real, but I figured
     ## it was better to type-annotate it as `float` rather than leaving
     ## it as `Any`.
-    result = np.complex64(np.exp(1j * freq * 2 * np.pi * timestamps))
+    result = np.exp(1j * freq * 2 * np.pi * timestamps, dtype=np.complex64)
     assert timestamps.shape == result.shape
     return result
 
@@ -349,7 +349,7 @@ def makeWave(samp_rate: float,
              freq: float,
              type_: Literal["real", "complex"],
              *, seconds: Optional[float] = None,
-             num: Optional[float] = None,
+             num: Optional[int] = None,
              allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
     """
     TODO:
@@ -466,6 +466,7 @@ def makeWave(samp_rate: float,
     elif seconds == None and num == None:
         raise ValueError("Must specify either `seconds` or `num`")
     elif seconds != None:
+        assert isinstance(seconds, float)
         if type_ == "real":
             return makeRealWave_time(seconds, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
@@ -473,6 +474,7 @@ def makeWave(samp_rate: float,
         else:
             raise ValueError("This will never happen if the @typechecked works")
     elif num != None:
+        assert isinstance(num, int)
         if type_ == "real":
             return makeRealWave_numsamps(num, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
@@ -584,7 +586,7 @@ def noisify(data: np.ndarray, amplitude=1, seed=None) -> np.ndarray:
     elif data.dtype == np.complex64:
         randnoisereal = np.complex64(random_normal(len(data), dtype=np.float32, seed=seed))
         randnoiseimag = np.complex64(random_normal(len(data), dtype=np.float32, seed=seed))
-        randnoise = randnoisereal + (1j * randnoiseimag)
+        randnoise = randnoisereal + (1j * randnoiseimag)  # type: ignore[assignment]
     else:
         raise NotImplementedError("Currently, this only works for these dtypes: float32, complex64.")
     assert randnoise.dtype == data.dtype
@@ -611,6 +613,7 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
     if text_source == None:
         print(f"No text source file specified, so all generated files will contain the message '{message}'")
     else:
+        assert isinstance(text_source, str)
         sentences = text_source.split(".")
         message = random.choice(sentences) + "."
         
