@@ -87,7 +87,7 @@ def _pad_chunk_queue(data: np.ndarray, chunk_size: int) -> SimpleQueueTypeWrappe
     if padlen != chunk_size:
         npdata = np.concatenate([npdata, np.zeros(padlen, dtype=np.complex64)])
     assert len(npdata) % chunk_size == 0
-    chunked = np.split(npdata, len(npdata)/chunk_size)
+    chunked = np.split(npdata, int(len(npdata)/chunk_size))
 
     q = SimpleQueueTypeWrapped(np.ndarray, np.complex64, chunk_size)
     for item in chunked:

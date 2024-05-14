@@ -7,8 +7,8 @@ from numpy.typing import NDArray
 from typeguard import typechecked
 
 from pcdr._internal.fileio import writeRealCSV, writeComplexCSV
-from pcdr._internal.modulators import ook_modulate
-from pcdr._internal.helpers import str_to_bin_list
+
+
 
 
 
@@ -115,7 +115,7 @@ def makeRealWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.float32]:
     """Return a sine wave.
     
     Example:
-    >>> from pcdr._internal.basictermplot import plot
+    >>> from pcdr.unstable import plot
     >>> timestamps = make_timestamps_seconds(1, 50)
     >>> wave = makeRealWave_basic(timestamps, 2)
     >>> plot(timestamps, wave)
@@ -145,7 +145,7 @@ def makeComplexWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.comple
     The real part is cosine (starts at 1); the imaginary part is sine (starts at 0).
     
     Example:
-    >>> from pcdr._internal.basictermplot import plot
+    >>> from pcdr.unstable import plot
     >>> timestamps = make_timestamps_seconds(1, 50)
     >>> wave = makeComplexWave_basic(timestamps, 2)
     >>> plot(timestamps, wave.real)
@@ -186,8 +186,6 @@ def makeComplexWave_basic(timestamps: NDArray, freq: float) -> NDArray[np.comple
 
 
 
-class AliasError(ValueError):
-    pass
 
 
 @typechecked
@@ -216,6 +214,7 @@ def _isAliasingWhenDisallowed(allowAliasing: bool, freq: float, samp_rate: float
 def _aliasingError(allowAliasing: bool, freq: float, samp_rate: float) -> None:
     """Gives a detailed Aliasing error message if it's aliasing when it shouldn't.
     :raises AliasError:"""
+    from pcdr.unstable import AliasError
     if _isAliasingWhenDisallowed(allowAliasing, freq, samp_rate):
         raise AliasError(f"For a sample rate of {samp_rate}, the highest frequency that can be faithfully represented is {samp_rate/2}. The specified freq, {freq}, is greater than the limit specified by Shannon/Nyquist/Kotelnikov/Whittaker (commonly called the Nyquist frequency).")
 
@@ -230,9 +229,9 @@ def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, al
     :raises AliasError: if _isAliasingWhenDisallowed
     
     Example:
-    >>> from pcdr._internal.basictermplot import plot
-    >>> timestamps, wave = makeComplexWave_numsamps(50, 50, 2)
-    >>> plot(timestamps, wave.real)
+    >>> from pcdr.unstable import plot
+    >>> wave = makeComplexWave_numsamps(50, 50, 2)
+    >>> plot(wave.t, wave.y.real)
     xmin: 0.00
     xmax: 0.98
     ymin: -0.99
@@ -245,7 +244,7 @@ def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, al
     ~███████o██████████o█████████████o██████████o██████
     ~████████oo██████oo███████████████oo██████oo███████
     ~██████████oooooo███████████████████oooooo█████████
-    >>> plot(timestamps, wave.imag)
+    >>> plot(wave.t, wave.y.imag)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -277,9 +276,9 @@ def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allow
     :raises AliasError: if _isAliasingWhenDisallowed
     
     Example:
-    >>> from pcdr._internal.basictermplot import plot
-    >>> timestamps, wave = makeRealWave_numsamps(50, 50, 2)
-    >>> plot(timestamps, wave)
+    >>> from pcdr.unstable import plot
+    >>> wave = makeRealWave_numsamps(50, 50, 2)
+    >>> plot(wave.t, wave.y)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -312,9 +311,9 @@ def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAli
     :raises AliasError: if _isAliasingWhenDisallowed
     
     Example:
-    >>> from pcdr._internal.basictermplot import plot
-    >>> timestamps, wave = makeComplexWave_time(1, 50, 2)
-    >>> plot(timestamps, wave.real)
+    >>> from pcdr.unstable import plot
+    >>> wave = makeComplexWave_time(1, 50, 2)
+    >>> plot(wave.t, wave.y.real)
     xmin: 0.00
     xmax: 0.98
     ymin: -0.99
@@ -327,7 +326,7 @@ def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAli
     ~███████o██████████o█████████████o██████████o██████
     ~████████oo██████oo███████████████oo██████oo███████
     ~██████████oooooo███████████████████oooooo█████████
-    >>> plot(timestamps, wave.imag)
+    >>> plot(wave.t, wave.y.imag)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -357,9 +356,9 @@ def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasi
     :raises AliasError: if _isAliasingWhenDisallowed
     
     Example:
-    >>> from pcdr._internal.basictermplot import plot
-    >>> timestamps, wave = makeRealWave_time(1, 50, 2)
-    >>> plot(timestamps, wave.real)
+    >>> from pcdr.unstable import plot
+    >>> wave = makeRealWave_time(1, 50, 2)
+    >>> plot(wave.t, wave.y)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -383,12 +382,12 @@ def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasi
 
 
 @typechecked
-def make_wave(samp_rate: float,
-             freq: float,
-             type_: Literal["real", "complex"],
-             *, seconds: Optional[float] = None,
-             num: Optional[int] = None,
-             allowAliasing: bool = False) -> TimeData:
+def make_wave(type_: Literal["real", "complex"],
+              samp_rate: float,
+              freq: float,
+              *, seconds: Optional[float] = None,
+              num: Optional[int] = None,
+              allowAliasing: bool = False) -> TimeData:
     """
     Generate a sine wave and the associated timestamps.
 
@@ -416,20 +415,20 @@ def make_wave(samp_rate: float,
     >>> seconds = 2
 
     ...the return value will have the length that we expect, which is samp_rate * seconds samples:
-    >>> timestamps, wave = makeWave(samp_rate, freq=3, "real", seconds=seconds)
-    >>> print(len(timestamps))
+    >>> wave = make_wave("real", samp_rate, freq=3, seconds=seconds)
+    >>> print(len(wave.t))
     100
-    >>> print(len(wave))
+    >>> print(len(wave.y))
     100
     
 
     Example 2: Plotting a result.
     Generate one second of data of a 3 Hz wave. The sample rate is 50 samples per second, and it is a real wave (no imaginary part).
-    >>> timestamps, wave = makeWave(50, 3, "real", seconds=1)
+    >>> wave = make_wave("real", 50, freq=3, seconds=1)
 
     Plot that wave. (Note, matplotlib would generate a superior plot; this is a simplified textual plot.)
-    >>> from pcdr._internal.basictermplot import plot
-    >>> plot(timestamps, wave)
+    >>> from pcdr.unstable import plot
+    >>> plot(wave.t, wave.y)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -443,8 +442,8 @@ def make_wave(samp_rate: float,
     ~██████████o████o███████████o████o██████████o████o█
     ~███████████oooo█████████████o█oo████████████oooo██
 
-    >>> timestamps, wave = makeWave(50, 3, "complex", seconds=1)
-    >>> plot(timestamps, wave.real)
+    >>> wave = make_wave("complex", 50, freq=3, seconds=1)
+    >>> plot(wave.t, wave.y.real)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -458,7 +457,7 @@ def make_wave(samp_rate: float,
     ~██████o████o███████████████████████████o████o█████
     ~███████oooo████████████ooooo████████████oooo██████
 
-    >>> plot(timestamps, wave.imag)
+    >>> plot(wave.t, wave.y.imag)
     xmin: 0.00
     xmax: 0.98
     ymin: -1.00
@@ -472,14 +471,14 @@ def make_wave(samp_rate: float,
     ~██████████o████o███████████o████o██████████o████o█
     ~███████████oooo█████████████o█oo████████████oooo██
 
-    >>> timestamps, wave = makeWave(50, 3, "real", num=60)
-    >>> plot(timestamps, wave)
+    >>> wave = make_wave("real", 50, freq=3, num=60)
+    >>> plot(wave.t, wave.y)
     xmin: 0.00
     xmax: 1.18
     ymin: -1.00
     ymax: 1.00
-    ~████o████████████████o████████████████████████████████o█████
-    ~███o█oo████████████oo█o█████████████oooo█████████████o█oo███
+    ~██████████████████████████████████████████████████████o█████
+    ~███oooo████████████oooo█████████████oooo█████████████o█oo███
     ~██o████o██████████o████o███████████o████o███████████o████o██
     ~█o██████████████████████o█████████o██████o█████████o████████
     ~o███████o████████o███████o███████o████████o███████o██████o██
@@ -487,8 +486,8 @@ def make_wave(samp_rate: float,
     ~██████████o████o███████████o████o██████████o████o███████████
     ~███████████oooo█████████████o█oo████████████oooo████████████
 
-    >>> timestamps, wave = makeWave(50, 3, "complex", num=60)
-    >>> plot(timestamps, wave.real)
+    >>> wave = make_wave("complex", 50, freq=3, num=60)
+    >>> plot(wave.t, wave.y.real)
     xmin: 0.00
     xmax: 1.18
     ymin: -1.00
@@ -501,13 +500,13 @@ def make_wave(samp_rate: float,
     ~█████o██████o█████████o█████o█████████o██████o█████████o████
     ~██████o████o███████████████████████████o████o███████████o███
     ~███████oooo████████████ooooo████████████oooo█████████████o█o
-    >>> plot(timestamps, wave.imag)
+    >>> plot(wave.t, wave.y.imag)
     xmin: 0.00
     xmax: 1.18
     ymin: -1.00
     ymax: 1.00
-    ~████o████████████████o████████████████████████████████o█████
-    ~███o█oo████████████oo█o█████████████oooo█████████████o█oo███
+    ~██████████████████████████████████████████████████████o█████
+    ~███oooo████████████oooo█████████████oooo█████████████o█oo███
     ~██o████o██████████o████o███████████o████o███████████o████o██
     ~█o██████████████████████o█████████o██████o█████████o████████
     ~o███████o████████o███████o███████o████████o███████o██████o██
@@ -515,35 +514,33 @@ def make_wave(samp_rate: float,
     ~██████████o████o███████████o████o██████████o████o███████████
     ~███████████oooo█████████████o█oo████████████oooo████████████
     
-    >> makeWave(10, 2, "real")
-    Traceback:
+    >>> make_wave("real", 10, 2)
+    Traceback (most recent call last):
       ...
     ValueError: Must specify either `seconds` or `num`
-    >> makeWave(10, 2, "complex", seconds=3, num=60)
-    Traceback:
+
+    >>> make_wave("complex", 10, 2, seconds=3, num=60)
+    Traceback (most recent call last):
       ...
-    ValueError: Cannot specify both `seconds` or `num` simultaneously
-    >> makeWave(10, 7, "real", seconds=3)
-    Traceback:
+    ValueError: Cannot specify both `seconds` and `num` simultaneously
+
+    >>> make_wave("real", 10, 7, seconds=3)
+    Traceback (most recent call last):
       ...
-    For a sample rate of 10, the highest frequency ...
-    >> makeWave(10, 7, "real", seconds=3, allowAliasing=True) == makeRealWave_time(3, 10, 2, allowAliasing=True)
-    True
+    pcdr.unstable.AliasError: For a sample rate of 10, the highest frequency ...
     """
     if seconds != None and num != None:
         raise ValueError("Cannot specify both `seconds` and `num` simultaneously")
     elif seconds == None and num == None:
         raise ValueError("Must specify either `seconds` or `num`")
-    elif seconds != None:
-        assert isinstance(seconds, float)
+    elif seconds is not None:
         if type_ == "real":
             return makeRealWave_time(seconds, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
             return makeComplexWave_time(seconds, samp_rate, freq, allowAliasing)
         else:
             raise ValueError("This will never happen if the @typechecked works")
-    elif num != None:
-        assert isinstance(num, int)
+    elif num is not None:
         if type_ == "real":
             return makeRealWave_numsamps(num, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
@@ -622,7 +619,7 @@ def multiply_by_complex_wave(baseband_sig: NDArray, samp_rate: float, freq: floa
     """
     Returns a tuple (timestamps, mult).
 
-    >>> from pcdr._internal.basictermplot import plot
+    >>> from pcdr.unstable import plot
     >>> from pcdr import multiply_by_complex_wave, ook_modulate
     >>> baseband_sig = ook_modulate([1, 0], 32)
     >>> timestamps, mult = multiply_by_complex_wave(baseband_sig, 64, 2)
@@ -653,8 +650,8 @@ def multiply_by_real_wave(baseband_sig: NDArray, samp_rate: float, freq: float, 
     """
     Returns a tuple (timestamps, mult).
 
-    >>> from pcdr._internal.basictermplot import plot
-    >>> from pcdr import multiply_by_real_wave, ook_modulate
+    >>> from pcdr.unstable import plot
+    >>> from pcdr.unstable import multiply_by_real_wave, ook_modulate
     >>> baseband_sig = ook_modulate([1, 0], 32)
     >>> timestamps, wave = multiply_by_real_wave(baseband_sig, 64, 2)
     >>> plot(timestamps, wave)
@@ -742,7 +739,7 @@ def make_fft_positive_freqs_only(sig: NDArray, samp_rate: float) -> Tuple[np.nda
     Return value is a tuple: (sample_freqs, fft_mag).
     `sample_freqs` ranges from 0 to approximately samp_rate/2
 
-    >>> from pcdr._internal.basictermplot import plot
+    >>> from pcdr.unstable import plot
     >>> from pcdr import make_wave, make_fft_positive_freqs_only
     >>> samp_rate = 50
     >>> timestamps, wave = make_wave(samp_rate, 5, "complex", seconds=2)
@@ -757,7 +754,7 @@ def make_fft_positive_freqs_only(sig: NDArray, samp_rate: float) -> Tuple[np.nda
     ~█████████o█o██████████████████████████████████████
     ~ooooooooo███oooooooooooooooooooooooooooooooooooooo
 
-    >>> timestamps, wave = makeWave(samp_rate, 5, "complex", seconds=0.2)
+    >>> timestamps, wave = make_wave(samp_rate, 5, "complex", seconds=0.2)
     >>> sample_freqs, fft_mag = make_fft_positive_freqs_only(wave, samp_rate)
     >>> plot(sample_freqs, fft_mag, youtputsize=4)
     xmin: 0.00
@@ -780,7 +777,7 @@ def make_fft(sig: np.ndarray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]
     Returns a tuple of (sample_freqs, fft_mag).
     `sample_freqs` ranges from approximately `-samp_rate/2` to approximately `samp_rate/2`.
 
-    >>> from pcdr._internal.basictermplot import plot
+    >>> from pcdr.unstable import plot
     >>> from pcdr import make_wave, make_fft
     >>> seconds = 0.2
     >>> samp_rate = 50

@@ -5,16 +5,16 @@ import osmosdr
 import numpy as np
 from numpy.typing import NDArray
 from pcdr._internal.our_GR_blocks import (
-    Blk_strength_by_mult, Blk_VecSingleItemStack
+    Blk_strength_by_mult, Blk_VecSingleItemStack,
+    ProbeReadable, connect_probe_common,
 )
 import time
 from typeguard import typechecked
 from pcdr._internal.misc import (
     get_OsmocomArgs_RX, get_OsmocomArgs_TX, 
     configureOsmocom, create_top_block_and_configure_exit,
-    connect_probe_common,
     Startable, StopAndWaitable, Waitable, IFGainSettable,
-    BBGainSettable, CenterFrequencySettable, ProbeReadable
+    BBGainSettable, CenterFrequencySettable, 
 )
 from pcdr._internal.types_and_contracts import HasWorkFunc
 

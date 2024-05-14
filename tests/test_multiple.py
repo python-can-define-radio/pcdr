@@ -4,7 +4,6 @@ import hypothesis.extra.numpy as hyponp
 import hypothesis.strategies as st
 import numpy as np
 
-from pcdr.unstable.gnuradio_sendlike import _pad_chunk_queue
 from pcdr._internal.misc import queue_to_list
 
 
@@ -13,19 +12,19 @@ def test_queue_to_list_empty_queue():
     assert queue_to_list(SimpleQueue()) == []
 
 
-from pcdr._wavegen import (
-    makeRealWave_basic,
-    makeComplexWave_basic,
-    _isAliasingWhenDisallowed,
-    _aliasingError,
-    makeComplexWave_numsamps,
-    makeRealWave_numsamps,
-    makeComplexWave_time,
-    makeRealWave_time,
-    multiply_by_complex_wave,
-    multiply_by_real_wave,
-    noisify
-)
+# from pcdr._wavegen import (
+#     makeRealWave_basic,
+#     makeComplexWave_basic,
+#     _isAliasingWhenDisallowed,
+#     _aliasingError,
+#     makeComplexWave_numsamps,
+#     makeRealWave_numsamps,
+#     makeComplexWave_time,
+#     makeRealWave_time,
+#     multiply_by_complex_wave,
+#     multiply_by_real_wave,
+#     noisify
+# )
 
 seconds_strat = st.floats(0, 100)
 num_samples_strat = st.integers(0, 100)
