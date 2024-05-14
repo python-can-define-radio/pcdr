@@ -15,6 +15,8 @@ import numpy as np
 import osmosdr
 from typeguard import typechecked
 
+from pcdr._internal.our_GR_blocks import Blk_VecSingleItemStack
+
 
 
 class DeviceParameterError(ValueError):
@@ -46,21 +48,11 @@ class HACKRF_ERRORS:
     TX_BB_GAIN = ("The HackRF One, when in transmit mode, does not have a BB Gain."
             "We chose to require that it be equal to zero to reduce the risk of errors.")
 
-
-
 @attrs.define
-class HackRFArgs_RX:
+class HackRFArgs:
     """
-    Used in GNU Radio's Osmocom Source block.
-    
-    Parameters
-    ----------
-    device_args :
-        This is typically "hackrf=0" when using the Hack RF.  
-        Options documented here: https://osmocom.org/projects/gr-osmosdr/wiki
-    
-    All others: 
-        Documented on the Hack RF FAQ.
+    Basic argument and validator parent to reduce redundancy
+    The arguments between Transmit and Recieve modes are almost identical, minus a few minor differences in values
     """
     device_args: str = field()
 
@@ -83,6 +75,29 @@ class HackRFArgs_RX:
 
     rf_gain: int = field(default=0, validator=validators.ge(0))
 
+    if_gain: int = field(default=0)
+
+    bb_gain: int = field(default=0)
+
+    @classmethod
+    def init_cf_da(cls, center_freq: float, device_args: str):
+        """Similar to normal __init__, but (a) only center_freq and device_args are allowed to be specified, and (b) sets the bandwidth to 2e6."""
+        return cls(center_freq=center_freq, device_args=device_args, bandwidth=2e6)
+@attrs.define
+class HackRFArgs_RX(HackRFArgs):
+    """
+    Used in GNU Radio's Osmocom Source block.
+    
+    Parameters
+    ----------
+    device_args :
+        This is typically "hackrf=0" when using the Hack RF.  
+        Options documented here: https://osmocom.org/projects/gr-osmosdr/wiki
+    
+    All others: 
+        Documented on the Hack RF FAQ.
+    """
+
     if_gain: int = field(default=24)
     @if_gain.validator
     def if_gain_check(self, attribute, value):
@@ -94,15 +109,10 @@ class HackRFArgs_RX:
     def bb_gain_check(self, attribute, value):
         if value not in range(0, 62+2, 2):
             raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
-
-    @classmethod
-    def init_cf_da(cls, center_freq: float, device_args: str):
-        """Similar to normal __init__, but (a) only center_freq and device_args are allowed to be specified, and (b) sets the bandwidth to 2e6."""
-        return cls(center_freq=center_freq, device_args=device_args, bandwidth=2e6)
     
 
 @attrs.define
-class HackRFArgs_TX:
+class HackRFArgs_TX(HackRFArgs):
     """
     Used in GNU Radio's Osmocom Sink block.
     
@@ -115,25 +125,6 @@ class HackRFArgs_TX:
     All others: 
         Documented on the Hack RF FAQ.
     """
-    device_args: str = field()
-
-    center_freq: float = field()
-    @center_freq.validator
-    def center_freq_check(self, attribute, value):
-        if not (1e6 <= value <= 6e9):
-            raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
-
-    # See note on HackRFArgs_RX bandwidth
-    bandwidth: float = field()
-
-    samp_rate: float = field(default=2e6)
-    @samp_rate.validator
-    def samp_rate_check(self, attribute, value):
-        if not (2e6 <= value <= 20e6):
-            raise ValueError(HACKRF_ERRORS.SAMP_RATE)
-
-    rf_gain: int = field(default=0, validator=validators.ge(0))
-
     if_gain: int = field(default=24)
     @if_gain.validator
     def if_gain_check(self, attribute, value):
@@ -146,19 +137,15 @@ class HackRFArgs_TX:
         if value != 0:
             raise ValueError(HACKRF_ERRORS.TX_BB_GAIN)
 
-    @classmethod
-    def init_cf_da(cls, center_freq: float, device_args: str):
-        """Similar to normal __init__, but (a) only center_freq and device_args are allowed to be specified, and (b) sets the bandwidth to 2e6."""
-        return cls(center_freq=center_freq, device_args=device_args, bandwidth=2e6)
+
+## Eventually, I imagine adding other devices, like
+##  OsmocomArgs_RX = Union[HackRFArgs_RX, RTLSDRArgs_RX, ...]
+OsmocomArgs_RX = Union[HackRFArgs_RX]
+OsmocomArgs_TX = Union[HackRFArgs_TX]
+OsmocomArgs = Union[HackRFArgs]
 
 
-class CenterFrequencySettable:
-    _osmoargs: Union[HackRFArgs_RX, HackRFArgs_TX]
-    @typechecked
-    def set_center_freq(self, center_freq: float) -> float:
-        ## TODO: how to statically check that osmo has correct type?
-        self._osmoargs.center_freq = center_freq
-        return self._osmo.set_center_freq(center_freq)
+
 
 
 class gr_top_block_typed(gr.top_block):
@@ -203,33 +190,37 @@ class Waitable(TbMethodWrap):
     def wait(self) -> None:
         self._tb.wait()
 
+class HasOsmo:
+    _osmoargs: OsmocomArgs
+    _osmo: Union[osmosdr.source, osmosdr.sink]
 
-class IFGainSettable:
+class CenterFrequencySettable(HasOsmo):
+    
     @typechecked
-    def set_if_gain(self, if_gain: float) -> float:
+    def set_center_freq(self, center_freq: float) -> float:
+        self._osmoargs.center_freq = center_freq
+        return self._osmo.set_center_freq(center_freq)
+class IFGainSettable(HasOsmo):
+    @typechecked
+    def set_if_gain(self, if_gain: int) -> float:
         self._osmoargs.if_gain = if_gain
         return self._osmo.set_if_gain(if_gain)
 
 
-class BBGainSettable:
+class BBGainSettable(HasOsmo):
     @typechecked
-    def set_bb_gain(self, bb_gain: float) -> float:
+    def set_bb_gain(self, bb_gain: int) -> float:
         self._osmoargs.bb_gain = bb_gain
         return self._osmo.set_bb_gain(bb_gain)
 
 
 class ProbeReadable:
+    _probe: Optional[Blk_VecSingleItemStack]
     @typechecked
     def read_probe(self) -> np.ndarray:
-        if self._probe == None:
+        if self._probe is None:
             raise AttributeError("The probe must be set using connect_probe().")
         return self._probe.sis._reading.get()
-
-
-## Eventually, I imagine adding other devices, like
-##  OsmocomArgs_RX = Union[HackRFArgs_RX, RTLSDRArgs_RX, ...]
-OsmocomArgs_RX = HackRFArgs_RX
-OsmocomArgs_TX = HackRFArgs_TX
 
 
 @typechecked
