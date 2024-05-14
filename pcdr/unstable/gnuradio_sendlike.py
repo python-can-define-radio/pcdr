@@ -7,7 +7,7 @@ from typing import List, Optional, Sequence, TypeVar, Union
 import numpy as np
 from gnuradio import gr
 
-from pcdr.unstable.osmocom_queued_tx_flowgraph import queue_to_osmocom_sink, queue_to_print_sink, queue_to_string_file_sink, queue_to_file_sink, queue_to_zmqpub_sink
+# from pcdr.unstable.osmocom_queued_tx_flowgraph import queue_to_osmocom_sink, queue_to_print_sink, queue_to_string_file_sink, queue_to_file_sink, queue_to_zmqpub_sink
 from pcdr._internal.misc import SimpleQueueTypeWrapped, queue_to_list, prepend_zeros_, configure_graceful_exit
 from pcdr._internal.vector_tx_flowgraphs import vector_to_file_sink
 from pcdr._internal.types_and_contracts import TRealNum, TRealOrComplexNum
@@ -97,37 +97,37 @@ def _pad_chunk_queue(data: np.ndarray, chunk_size: int) -> SimpleQueueTypeWrappe
     return q
 
 
-def _gnuradio_guisink_using_queue_impl(data: np.ndarray,
-                  center_freq: float,
-                  samp_rate: float,
-                  prepend_zeros: int = 0,
-                  chunk_size: int = 1024):
-    """Display using a GNU Radio QT GUI Sink."""
-    prepended = np.concatenate([np.zeros(prepend_zeros, dtype=data.dtype), data])
-    assert prepended.dtype == data.dtype
-    assert (prepended[prepend_zeros:] == data).all()
-    q = _pad_chunk_queue(prepended, chunk_size)
+# def _gnuradio_guisink_using_queue_impl(data: np.ndarray,
+#                   center_freq: float,
+#                   samp_rate: float,
+#                   prepend_zeros: int = 0,
+#                   chunk_size: int = 1024):
+#     """Display using a GNU Radio QT GUI Sink."""
+#     prepended = np.concatenate([np.zeros(prepend_zeros, dtype=data.dtype), data])
+#     assert prepended.dtype == data.dtype
+#     assert (prepended[prepend_zeros:] == data).all()
+#     q = _pad_chunk_queue(prepended, chunk_size)
 
-    _configure_and_run_gui_flowgraph(queue_to_guisink, [center_freq, samp_rate, q, chunk_size])
-
-
-def gnuradio_guisink(data: np.ndarray,
-                  center_freq: float,
-                  samp_rate: float,
-                  prepend_zeros: int = 0):
-    """Display using a GNU Radio QT GUI Sink."""
-    prepended = prepend_zeros_(data, prepend_zeros)
-    normal_py_data = tuple(map(complex, prepended))  # GNURadio type issues. Eventually, fix this for efficiency
-    _configure_and_run_gui_flowgraph(vector_to_guisink, [center_freq, samp_rate, normal_py_data])
+#     _configure_and_run_gui_flowgraph(queue_to_guisink, [center_freq, samp_rate, q, chunk_size])
 
 
-def _gnuradio_print_using_queue_impl(data: np.ndarray, print_delay: float = 0.5, chunk_size: int = 1024):
-    """Sends data to a print block."""
-    q = _pad_chunk_queue(data, chunk_size)
-    tb = queue_to_print_sink(print_delay, q, chunk_size)
-    configure_graceful_exit(tb)
-    tb.start()
-    tb.wait()
+# def gnuradio_guisink(data: np.ndarray,
+#                   center_freq: float,
+#                   samp_rate: float,
+#                   prepend_zeros: int = 0):
+#     """Display using a GNU Radio QT GUI Sink."""
+#     prepended = prepend_zeros_(data, prepend_zeros)
+#     normal_py_data = tuple(map(complex, prepended))  # GNURadio type issues. Eventually, fix this for efficiency
+#     _configure_and_run_gui_flowgraph(vector_to_guisink, [center_freq, samp_rate, normal_py_data])
+
+
+# def _gnuradio_print_using_queue_impl(data: np.ndarray, print_delay: float = 0.5, chunk_size: int = 1024):
+#     """Sends data to a print block."""
+#     q = _pad_chunk_queue(data, chunk_size)
+#     tb = queue_to_print_sink(print_delay, q, chunk_size)
+#     configure_graceful_exit(tb)
+#     tb.start()
+#     tb.wait()
 
 
 # def gnuradio_print():
@@ -138,56 +138,56 @@ def _gnuradio_print_using_queue_impl(data: np.ndarray, print_delay: float = 0.5,
 #     raise NotImplementedError()
 
 
-def _gnuradio_write_text_file_using_queue_impl(data: np.ndarray, filename: str, chunk_size: int = 1024):
-    """Writes data to a file named `filename`, encoded as text.
-    NOTE: Based on issues experienced with _gnuradio_write_file, this may not write the entire file."""
-    q = _pad_chunk_queue(data, chunk_size)
-    tb = queue_to_string_file_sink(filename, q, chunk_size)
-    configure_graceful_exit(tb)
-    tb.start()
-    tb.wait()
+# def _gnuradio_write_text_file_using_queue_impl(data: np.ndarray, filename: str, chunk_size: int = 1024):
+#     """Writes data to a file named `filename`, encoded as text.
+#     NOTE: Based on issues experienced with _gnuradio_write_file, this may not write the entire file."""
+#     q = _pad_chunk_queue(data, chunk_size)
+#     tb = queue_to_string_file_sink(filename, q, chunk_size)
+#     configure_graceful_exit(tb)
+#     tb.start()
+#     tb.wait()
 
 
-def _gnuradio_write_file_using_queue_impl(data: np.ndarray, filename: str, chunk_size: int = 1024):
-    """Writes data to a file named `filename`, encoded as np.complex64.
-    NOTE: There seem to be unresolved issues in which this does not write a full file."""
-    q = _pad_chunk_queue(data, chunk_size)
-    tb = queue_to_file_sink(filename, q, chunk_size)
-    configure_graceful_exit(tb)
-    tb.start()
-    tb.wait()
+# def _gnuradio_write_file_using_queue_impl(data: np.ndarray, filename: str, chunk_size: int = 1024):
+#     """Writes data to a file named `filename`, encoded as np.complex64.
+#     NOTE: There seem to be unresolved issues in which this does not write a full file."""
+#     q = _pad_chunk_queue(data, chunk_size)
+#     tb = queue_to_file_sink(filename, q, chunk_size)
+#     configure_graceful_exit(tb)
+#     tb.start()
+#     tb.wait()
 
 
-def _gnuradio_write_file(data: np.ndarray, filename: str):
-    """Writes data to a file named `filename`, encoded as np.complex64.
-    NOTE: There seem to be an unresolved issue in which this does not write a full file."""
-    normal_py_data = tuple(map(complex, data))  # GNURadio type issues. Eventually, fix this for efficiency
-    tb = vector_to_file_sink(normal_py_data, filename)
-    configure_graceful_exit(tb)
-    tb.start()
-    tb.wait()
+# def _gnuradio_write_file(data: np.ndarray, filename: str):
+#     """Writes data to a file named `filename`, encoded as np.complex64.
+#     NOTE: There seem to be an unresolved issue in which this does not write a full file."""
+#     normal_py_data = list(map(complex, data))  # GNURadio type issues. Eventually, fix this for efficiency
+#     tb = vector_to_file_sink(normal_py_data, filename)
+#     configure_graceful_exit(tb)
+#     tb.start()
+#     tb.wait()
 
 
-def _gnuradio_network_pub(data: np.ndarray, port: int = 8008, chunk_size: int = 1024):
-    """NOT FULLY TESTED. 
-    Use a TCP socket to transmit data to a host on the network (also works for localhost).
-    (Note: implemented using ZeroMQ.)"""
-    q = _pad_chunk_queue(data, chunk_size)
-    tb = queue_to_zmqpub_sink(port, q, chunk_size)
-    configure_graceful_exit(tb)
-    tb.start()
-    tb.wait()
+# def _gnuradio_network_pub(data: np.ndarray, port: int = 8008, chunk_size: int = 1024):
+#     """NOT FULLY TESTED. 
+#     Use a TCP socket to transmit data to a host on the network (also works for localhost).
+#     (Note: implemented using ZeroMQ.)"""
+#     q = _pad_chunk_queue(data, chunk_size)
+#     tb = queue_to_zmqpub_sink(port, q, chunk_size)
+#     configure_graceful_exit(tb)
+#     tb.start()
+#     tb.wait()
 
 
-def _gnuradio_send_using_queue_impl(data: np.ndarray,
-                  center_freq: float,
-                  samp_rate: float,
-                  if_gain: int = 16,
-                  device_args: str = "hackrf=0",
-                  chunk_size: int = 1024):
-    """Sends `data` to osmocom sink."""
-    q = _pad_chunk_queue(data, chunk_size)
-    tb = queue_to_osmocom_sink(center_freq, samp_rate, chunk_size, if_gain, q, device_args)
-    configure_graceful_exit(tb)
-    tb.start()
-    tb.wait()
+# def _gnuradio_send_using_queue_impl(data: np.ndarray,
+#                   center_freq: float,
+#                   samp_rate: float,
+#                   if_gain: int = 16,
+#                   device_args: str = "hackrf=0",
+#                   chunk_size: int = 1024):
+#     """Sends `data` to osmocom sink."""
+#     q = _pad_chunk_queue(data, chunk_size)
+#     tb = queue_to_osmocom_sink(center_freq, samp_rate, chunk_size, if_gain, q, device_args)
+#     configure_graceful_exit(tb)
+#     tb.start()
+#     tb.wait()
