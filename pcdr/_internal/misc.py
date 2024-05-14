@@ -15,8 +15,6 @@ import numpy as np
 import osmosdr
 from typeguard import typechecked
 
-from pcdr._internal.our_GR_blocks import Blk_VecSingleItemStack
-
 
 
 class DeviceParameterError(ValueError):
@@ -212,15 +210,6 @@ class BBGainSettable(HasOsmo):
     def set_bb_gain(self, bb_gain: int) -> float:
         self._osmoargs.bb_gain = bb_gain
         return self._osmo.set_bb_gain(bb_gain)
-
-
-class ProbeReadable:
-    _probe: Optional[Blk_VecSingleItemStack]
-    @typechecked
-    def read_probe(self) -> np.ndarray:
-        if self._probe is None:
-            raise AttributeError("The probe must be set using connect_probe().")
-        return self._probe.sis._reading.get()
 
 
 @typechecked
@@ -438,16 +427,6 @@ def getSize(dtype: type) -> int:
         return gr.sizeof_char
     else:
         raise NotImplementedError("Feel free to add more dtype matches")
-
-
-@typechecked
-def connect_probe_common(tb: gr.top_block, src_blk, type_: type, vecsize: int):
-    ## placed here to avoid circular imports
-    from pcdr._internal.our_GR_blocks import Blk_VecSingleItemStack
-
-    probe = Blk_VecSingleItemStack(type_, vecsize)
-    tb.connect(src_blk, probe)
-    return probe
 
 
 ## james-pcdr wants to think about this a bit more before adding @typechecked

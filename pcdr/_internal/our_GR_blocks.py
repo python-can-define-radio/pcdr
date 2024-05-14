@@ -288,3 +288,19 @@ class Blk_VecSingleItemStack(gr.hier_block2):
         self.stv = blocks.stream_to_vector(itemsize, vecsize)
         self.sis = Blk_SingleItemStack(vecsize, type_)
         self.connect(self, self.stv, self.sis)
+
+
+@typechecked
+def connect_probe_common(tb: gr.top_block, src_blk, type_: type, vecsize: int):
+    probe = Blk_VecSingleItemStack(type_, vecsize)
+    tb.connect(src_blk, probe)
+    return probe
+
+
+class ProbeReadable:
+    _probe: Optional["Blk_VecSingleItemStack"]
+    @typechecked
+    def read_probe(self) -> np.ndarray:
+        if self._probe is None:
+            raise AttributeError("The probe must be set using connect_probe().")
+        return self._probe.sis._reading.get()
