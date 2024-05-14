@@ -20,3 +20,9 @@ from pcdr._internal.wavegen import (
 from pcdr._internal.misc import (
     gnuradio_send
 )
+
+from pcdr._internal.basictermplot import plot
+
+
+class AliasError(ValueError):
+    pass
