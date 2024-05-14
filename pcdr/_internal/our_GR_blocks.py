@@ -147,7 +147,7 @@ class Blk_queue_sink(gr.sync_block):
             in_sig=[(dtype, chunk_size)],
             out_sig=[]
         )
-        self.queue = SimpleQueue()
+        self.queue: SimpleQueue = SimpleQueue()
 
     def work(self, input_items, output_items):  
         datacopy = input_items[0][0].copy()
@@ -216,7 +216,7 @@ class FreqComparisonMultiplier:
         self.__compare_wave: NDArray[np.complex64] = wave.y
         assert self.__compare_wave.dtype == np.complex64
     
-    def get_freq_strength(self, dat: NDArray[np.complex64]) -> np.float64:
+    def get_freq_strength(self, dat: NDArray[np.complex64]) -> np.float32:
         """
         >>> from pcdr import make_wave
         >>> samp_rate = 100
@@ -231,7 +231,8 @@ class FreqComparisonMultiplier:
         This needs to be filled
         """
         mul = dat * self.__compare_wave
-        su = np.sum(mul, dtype=np.complex64)
+        assert mul.dtype == np.complex64
+        su = np.sum(mul)
         assert isinstance(su, np.complex64)  # TODO: remove for performance
         a = np.abs(su)
         assert isinstance(a, np.float32)  # TODO: remove for performance
