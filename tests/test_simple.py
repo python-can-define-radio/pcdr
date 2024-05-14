@@ -1,7 +1,5 @@
 from pcdr.flow import OsmoSingleFreqReceiver
 from unittest.mock import patch
-import time
-from typeguard import typechecked
 from tests.test_other__blocks_for_testing import Blk_fake_osmosdr_source
 
 

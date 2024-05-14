@@ -1,12 +1,11 @@
 from pcdr.unstable.misc import (
     generate_ook_modulated_example_data,
     generate_ook_modulated_example_file,
-)
-
-from pcdr._internal.modulators import (
+    str_to_bin_list,
     ook_modulate,
     ook_modulate_at_frequency,
 )
+
 
 from pcdr._internal.wavegen import (
     make_wave,
@@ -17,9 +16,6 @@ from pcdr._internal.wavegen import (
     noisify,
 )
 
-from pcdr._internal.helpers import (
-    str_to_bin_list,
-)
 
 from pcdr._internal.misc import (
     gnuradio_send

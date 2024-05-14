@@ -1,6 +1,5 @@
 from gnuradio import gr, analog, blocks
-from pcdr._internal.our_GR_blocks import Blk_strength_at_freq, SingleItemStack, Averager
-import time
+from pcdr._internal.our_GR_blocks import SingleItemStack, Averager
 import pytest
 import queue
 
