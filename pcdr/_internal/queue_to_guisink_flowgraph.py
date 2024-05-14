@@ -13,14 +13,9 @@
 from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio.filter import firdes
-import sip
+import sip  # type: ignore[import-not-found]
 from gnuradio import blocks
 from gnuradio import gr
-import sys
-import signal
-from argparse import ArgumentParser
-from gnuradio.eng_arg import eng_float, intx
-from gnuradio import eng_notation
 from gnuradio import qtgui
 from pcdr._internal.misc import SimpleQueueTypeWrapped
 from pcdr._internal.our_GR_blocks import queue_source

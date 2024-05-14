@@ -13,7 +13,7 @@ from distutils.version import StrictVersion
 from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio.filter import firdes
-import sip
+import sip  # type: ignore[import-not-found]
 from gnuradio import blocks
 from gnuradio import gr
 from gnuradio import qtgui

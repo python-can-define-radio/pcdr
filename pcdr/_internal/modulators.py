@@ -3,6 +3,7 @@ from typing import List, Iterable, TypeVar, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
+from pcdr._internal.wavegen import TimeData
 
 T = TypeVar('T')
 
@@ -71,7 +72,7 @@ def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> NDArray:
 
 ## Don't typecheck this one for now; see note on `ook_modulate`
 def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float, freq: float
-                ) -> Tuple[NDArray[np.float64], NDArray[np.complex64]]:
+                ) -> TimeData:
     """
     OOK Modulate at a given frequency. Returns the timestamps and the modulated data.
 
@@ -97,13 +98,11 @@ def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float
     __must_be_binary(bits)
     ## TODO: place this import better.
     ## For now, this import must be here due to circular imports
-    from pcdr._wavegen import multiply_by_complex_wave
+    from pcdr._internal.wavegen import multiply_by_complex_wave
 
     baseband_sig = ook_modulate(bits, bit_length)
     result = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
-    assert result[0].dtype == np.float64    # TODO: these may be unnecessary now that I know how to do NDArray type annotations properly
-    assert result[1].dtype == np.complex64
-    assert len(result[0]) == len(result[1]) == (len(bits) * bit_length)
+    assert result.t.dtype == np.float64    # TODO: these may be unnecessary now that I know how to do NDArray type annotations properly
+    assert result.y.dtype == np.complex64
+    assert len(result.y) == len(result.y) == (len(bits) * bit_length)
     return result
-
-

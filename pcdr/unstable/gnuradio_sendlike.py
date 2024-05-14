@@ -2,10 +2,9 @@ from distutils.version import StrictVersion
 from queue import Empty
 import signal
 import sys
-from typing import List, Optional, Sequence, TypeVar, Union
+from typing import List, Optional, Sequence, TypeVar, Union, Type
 
 import numpy as np
-from gnuradio import gr
 
 # from pcdr.unstable.osmocom_queued_tx_flowgraph import queue_to_osmocom_sink, queue_to_print_sink, queue_to_string_file_sink, queue_to_file_sink, queue_to_zmqpub_sink
 from pcdr._internal.misc import SimpleQueueTypeWrapped, queue_to_list, prepend_zeros_, configure_graceful_exit
@@ -16,43 +15,43 @@ from pcdr._internal.vector_to_guisink_flowgraph import vector_to_guisink
 
 
 
-try:
-    ## Why this import is here:
-    ## We don't want Qt to be required for ALL pcdr uses;
-    ## just graphical ones.
-    from PyQt5 import Qt
+# try:
+#     ## Why this import is here:
+#     ## We don't want Qt to be required for ALL pcdr uses;
+#     ## just graphical ones.
+#     from PyQt5 import Qt
 
 
-    def _configure_and_run_gui_flowgraph(top_block_cls, args):
-        """The portion of GNU Radio boilerplate that 
-        sets up the QT GUI Application."""
-        if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-            style = gr.prefs().get_string('qtgui', 'style', 'raster')
-            Qt.QApplication.setGraphicsSystem(style)
-        qapp = Qt.QApplication(sys.argv)
+#     def _configure_and_run_gui_flowgraph(top_block_cls: Type[gr.top_block], args):
+#         """The portion of GNU Radio boilerplate that 
+#         sets up the QT GUI Application."""
+#         if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
+#             style = gr.prefs().get_string('qtgui', 'style', 'raster')
+#             Qt.QApplication.setGraphicsSystem(style)
+#         qapp = Qt.QApplication(sys.argv)
 
-        tb = top_block_cls(*args)
-        tb.start()
-        tb.show()
+#         tb = top_block_cls(*args)
+#         tb.start()
+#         tb.show()
 
-        def sig_handler(sig=None, frame=None):
-            Qt.QApplication.quit()
+#         def sig_handler(sig=None, frame=None):
+#             Qt.QApplication.quit()
 
-        signal.signal(signal.SIGINT, sig_handler)
-        signal.signal(signal.SIGTERM, sig_handler)
+#         signal.signal(signal.SIGINT, sig_handler)
+#         signal.signal(signal.SIGTERM, sig_handler)
 
-        timer = Qt.QTimer()
-        timer.start(500)
-        timer.timeout.connect(lambda: None)
+#         timer = Qt.QTimer()
+#         timer.start(500)
+#         timer.timeout.connect(lambda: None)
 
-        def quitting():
-            tb.stop()
-            tb.wait()
-        qapp.aboutToQuit.connect(quitting)
-        qapp.exec_()
+#         def quitting():
+#             tb.stop()
+#             tb.wait()
+#         qapp.aboutToQuit.connect(quitting)
+#         qapp.exec_()
 
-except ModuleNotFoundError:
-    pass
+# except ModuleNotFoundError:
+#     pass
 
 
 def _pad_chunk_queue(data: np.ndarray, chunk_size: int) -> SimpleQueueTypeWrapped:

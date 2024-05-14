@@ -513,7 +513,7 @@ def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"]
         return Blockify_Blk()
     
     elif category == "sink":
-        class Blockify_Blk(gr.sync_block):
+        class Blockify_Blk(gr.sync_block):  # type: ignore[no-redef]
             @typechecked
             def __init__(self):
                 gr.sync_block.__init__(
@@ -534,7 +534,7 @@ def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"]
         return Blockify_Blk()
     
     elif category == "whatever_you_call_the_others":
-        class Blockify_Blk(gr.sync_block):
+        class Blockify_Blk(gr.sync_block):  # type: ignore[no-redef]
             @typechecked
             def __init__(self):
                 gr.sync_block.__init__(

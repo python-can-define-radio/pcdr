@@ -556,13 +556,13 @@ def make_wave(samp_rate: float,
 
 def wave_and_write(basename: str, timestamps: np.ndarray, freq, complex_or_real: Literal["c", "r"]):
     if complex_or_real == "r":
-        data: NDArray[np.float32] = makeRealWave_basic(timestamps, freq)
-        writeRealCSV(basename + ".csv", data)
-        data.tofile(basename + ".float32")
+        data_r: NDArray[np.float32] = makeRealWave_basic(timestamps, freq)
+        writeRealCSV(basename + ".csv", data_r)
+        data_r.tofile(basename + ".float32")
     elif complex_or_real == "c":
-        data: NDArray[np.complex64] = makeComplexWave_basic(timestamps, freq)
-        writeComplexCSV(basename + ".csv", data)
-        data.tofile(basename + ".complex64")
+        data_c: NDArray[np.complex64] = makeComplexWave_basic(timestamps, freq)
+        writeComplexCSV(basename + ".csv", data_c)
+        data_c.tofile(basename + ".complex64")
     else:
         raise ValueError("Must choose 'c' or 'r' to specify if real or complex is wanted.")
 

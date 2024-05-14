@@ -211,7 +211,7 @@ class Averager:
 class FreqComparisonMultiplier:
     @typechecked
     def __init__(self, samp_rate: float, freq_of_interest: float, chunk_size: int):
-        from pcdr._wavegen import make_wave  # Avoid circular imports
+        from pcdr._internal.wavegen import make_wave  # Avoid circular imports
         wave = make_wave(samp_rate, freq_of_interest, "complex", num=chunk_size)
         self.__compare_wave: NDArray[np.complex64] = wave.y
         assert self.__compare_wave.dtype == np.complex64
