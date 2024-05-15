@@ -1,13 +1,16 @@
+from contextlib import redirect_stdout
+from io import StringIO
 import random
-from typing import Optional, List, TypeVar, Union
-from numpy.typing import NDArray
+from typing import Optional, List, TypeVar, Union, Iterable, Tuple
+
 import numpy as np
+from numpy.typing import NDArray
+import plotext
 from typeguard import typechecked
+
 from pcdr._internal.wavegen import noisify
-
-from typing import List, Iterable, TypeVar, Tuple
-
 from pcdr._internal.wavegen import TimeData
+
 
 T = TypeVar('T')
 
@@ -280,3 +283,45 @@ def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float
     assert result.y.dtype == np.complex64
     assert len(result.y) == len(result.y) == (len(bits) * bit_length)
     return result
+
+
+def docstring_plot(xdata: list, ydata: list, xsize: int = 40, ysize: int = 7):
+    """
+    >>> import numpy as np
+    >>> x = list(range(50))
+    >>> print(docstring_plot(x, np.sin(x)))
+         ┌─────────────────────────────────┐
+     1.00┤▗▟  ▗▟   ▞▖  ▞▖  ▄▌  ▗▌  ▗▚   ▟  │
+     0.33┤▌▝▖ ▌ ▌ ▞ ▌ ▐ ▌ ▐ ▚ ▗▘▐ ▗▘▐  ▞▝▖ │
+    -0.33┤  ▌▗▘ ▚ ▌ ▚ ▌ ▝▖▞ ▐ ▐ ▝▖▐  ▌▐  ▚ │
+    -1.00┤  ▝▟   ▜   ▚▘  ▝▌  ▚▌  ▝▞  ▝▞   ▚│
+         └┬───────┬───────┬───────┬───────┬┘
+         0.0    12.2    24.5    36.8   49.0 
+    >>> print(docstring_plot(x, np.sin(x), xsize=len(x), ysize=20))
+         ┌───────────────────────────────────────────┐
+     1.00┤ ▗    ▗▌   ▗▌    ▗     ▗    ▟     ▖        │
+         │ █    ▐▌   ▐▚    ▛▖   ▗▜    █    ▐▌   ▗▀▌  │
+         │▐▐    ▌▚   ▐▐    ▌▌   ▞▐    ▌▌   ▐▐   ▐ ▌  │
+     0.67┤▐▐   ▗▘▐   ▐ ▌   ▌▌   ▌▝▖   ▌▌   ▞▐   ▐ ▌  │
+         │▐ ▌  ▐ ▐   ▐ ▌  ▐ ▌   ▌ ▌  ▐ ▐   ▌▐   ▐ ▐  │
+     0.33┤▌ ▌  ▐  ▌  ▞ ▌  ▐ ▐   ▌ ▌  ▐ ▐   ▌▐   ▌ ▐  │
+         │▌ ▌  ▐  ▌  ▌ ▌  ▐ ▐  ▐  ▐  ▐ ▐  ▗▘ ▌  ▌ ▐  │
+         │▌ ▐  ▌  ▌  ▌ ▐  ▞ ▐  ▐  ▐  ▐ ▐  ▐  ▌  ▌  ▌ │
+    -0.00┤▘ ▐  ▌  ▌  ▌ ▐  ▌ ▝▖ ▐  ▐  ▌  ▌ ▐  ▌ ▗▘  ▌ │
+         │  ▐  ▌  ▌ ▐  ▐  ▌  ▌ ▐  ▐  ▌  ▌ ▐  ▚ ▐   ▌ │
+         │  ▐  ▌  ▌ ▐  ▝▖ ▌  ▌ ▌  ▐  ▌  ▌ ▌  ▐ ▐   ▌ │
+    -0.33┤   ▌▐   ▌ ▐   ▌▐   ▌ ▌  ▐  ▌  ▌ ▌  ▐ ▐   ▌ │
+         │   ▌▐   ▚ ▐   ▌▐   ▐ ▌  ▐ ▐   ▐ ▌  ▐ ▐   ▌ │
+    -0.67┤   ▌▐   ▐ ▌   ▌▐   ▐ ▌  ▝▖▐   ▐ ▌   ▌▐   ▌ │
+         │   ▚▐   ▝▖▌   ▌▐   ▐ ▌   ▌▞   ▐▐    ▌▐   ▚ │
+         │   ▝▟    █    ▙▘    ▚▌   ▐▌   ▐▞    ▌▞   ▝▖│
+    -1.00┤    ▝    ▜    ▝          ▝▌   ▝▌    ▝     ▝│
+         └┬──────────┬─────────┬──────────┬─────────┬┘
+         0.0       12.2      24.5       36.8     49.0 
+    """
+    plotext.theme("clear")
+    plotext.plot_size(xsize, ysize)
+    plotext.plot(xdata, ydata)
+    with redirect_stdout(StringIO()) as stream:
+        plotext.show()
+    return stream.getvalue().replace("\x1b[0m", "")[:-1]
