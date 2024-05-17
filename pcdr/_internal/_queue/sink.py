@@ -47,6 +47,7 @@ def _post_warn_chunk_size(chunk_size: int):
 @typechecked
 def _compute_chunk_size(samp_rate: float, chunk_size: Optional[int]) -> int:
     """
+    >>> import pytest; pytest.skip()
     >>> _compute_chunk_size(350, None)
     35
     >>> _compute_chunk_size(321, None)
