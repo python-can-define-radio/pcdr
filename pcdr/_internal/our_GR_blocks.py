@@ -218,17 +218,17 @@ class FreqComparisonMultiplier:
     
     def get_freq_strength(self, dat: NDArray[np.complex64]) -> np.float32:
         """
-        >>> from pcdr import make_wave
+        >>> from pcdr.unstable import make_wave
         >>> samp_rate = 100
         >>> freq_of_interest = 5
         >>> chunk_size = 1024
         >>> fcm = FreqComparisonMultiplier(samp_rate, freq_of_interest, chunk_size)
-        >>> data1 = make_wave(samp_rate, 5, "complex", num=chunk_size)
-        >>> fcm.get_freq_strength(data1)
-        This needs to be filled
-        >>> data2 = make_wave(samp_rate, 10, "complex", num=chunk_size)
-        >>> fcm.get_freq_strength(data2)
-        This needs to be filled
+        >>> data1 = make_wave("complex", samp_rate, 5, num=chunk_size)
+        >>> fcm.get_freq_strength(data1.y)
+        Hopefully this will be significantly higher
+        >>> data2 = make_wave("complex", samp_rate, 10, num=chunk_size)
+        >>> fcm.get_freq_strength(data2.y)
+        Hopefully this will be significantly lower
         """
         mul = dat * self.__compare_wave
         assert mul.dtype == np.complex64
