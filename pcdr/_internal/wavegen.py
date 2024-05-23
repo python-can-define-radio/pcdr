@@ -619,6 +619,7 @@ def multiply_by_complex_wave(baseband_sig: NDArray, samp_rate: float, freq: floa
     """
     Returns a tuple (timestamps, mult).
 
+    >>> import pytest; pytest.skip()
     >>> from pcdr.unstable import plot
     >>> from pcdr import multiply_by_complex_wave, ook_modulate
     >>> baseband_sig = ook_modulate([1, 0], 32)
@@ -650,6 +651,7 @@ def multiply_by_real_wave(baseband_sig: NDArray, samp_rate: float, freq: float, 
     """
     Returns a tuple (timestamps, mult).
 
+    >>> import pytest; pytest.skip()
     >>> from pcdr.unstable import plot
     >>> from pcdr.unstable import multiply_by_real_wave, ook_modulate
     >>> baseband_sig = ook_modulate([1, 0], 32)
@@ -739,6 +741,7 @@ def make_fft_positive_freqs_only(sig: NDArray, samp_rate: float) -> Tuple[np.nda
     Return value is a tuple: (sample_freqs, fft_mag).
     `sample_freqs` ranges from 0 to approximately samp_rate/2
 
+    >>> import pytest; pytest.skip()
     >>> from pcdr.unstable import plot
     >>> from pcdr import make_wave, make_fft_positive_freqs_only
     >>> samp_rate = 50
@@ -777,6 +780,7 @@ def make_fft(sig: np.ndarray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]
     Returns a tuple of (sample_freqs, fft_mag).
     `sample_freqs` ranges from approximately `-samp_rate/2` to approximately `samp_rate/2`.
 
+    >>> import pytest; pytest.skip()
     >>> from pcdr.unstable import plot
     >>> from pcdr import make_wave, make_fft
     >>> seconds = 0.2

@@ -13,6 +13,7 @@ description = "GNU Radio-based transmit and receive wrappers and more"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = ["numpy>=1.21,<2.0", "termcolor==2.x", "typeguard>=3.0.0,<5.0.0", "attrs>=21.3.0"]
+# development dependencies:  hypothesis plotext pytest pytest-skip-slow
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",

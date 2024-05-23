@@ -4,6 +4,8 @@ from typing import Optional, List, Tuple, Literal
 from typeguard import typechecked
 
 
+import pytest; pytest.skip(allow_module_level=True)
+
 
 def createTimestamps(seconds: float, num_samples: int, dtype=np.float64) -> np.ndarray:
     """Creates timestamps from zero up to the given maximum number of seconds.

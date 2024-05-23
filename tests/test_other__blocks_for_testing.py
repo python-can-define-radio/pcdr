@@ -6,10 +6,12 @@ import numpy as np
 from typeguard import typechecked, TypeCheckError
 from pcdr._internal.our_GR_blocks import Blk_sink_print
 from pcdr._internal.basictermplot import plot
-from pcdr._internal.misc import getSize, connect_run_wait
+from pcdr._internal.misc import getSize
+from pcdr.unstable.misc2 import first_n_match
 import pytest
 from itertools import count
-from hypothesis import given, strategies as st, settings
+from hypothesis import given, settings
+from hypothesis.strategies import integers
 from datetime import timedelta
 
 
@@ -102,41 +104,6 @@ class Blk_fake_osmosdr_source(gr.hier_block2):
         pass
 
 
-class Blk_capture_as_list(gr.sync_block):
-    @typechecked
-    def __init__(self, type_: type, output: list):
-        gr.sync_block.__init__(self, name="", in_sig=[type_], out_sig=[])
-        self.captured: list = output
-        self.type_ = type_ 
-
-    def work(self, input_items, output_items):
-        i00 = input_items[0][0]
-        assert isinstance(i00, self.type_)
-        self.captured.append(i00)
-        return 1
-
-
-@typechecked
-def first_n_match(src_blk, output_type: type, n: int, compare: list):
-    assert hasattr(src_blk, "work")
-    
-    # This is actually a List[output_type], but mypy doesn't like that
-    output: list = []  # type: ignore[var-annotated]
-    connect_run_wait(
-        src_blk,
-        blocks.head(getSize(output_type), n),
-        Blk_capture_as_list(output_type, output)
-    )
-    assert all(map(lambda x: isinstance(x, output_type), output))
-    assert len(output) == len(compare)
-    cmpnp = np.array(compare, dtype=output_type)        
-    for actual, expected, idx in zip(output, cmpnp, count()):
-        assert isinstance(actual, output_type)
-        assert isinstance(expected, output_type)
-        assert actual == expected, f"Error at idx {idx}: Act {actual}, Exp {expected}"
-
-
-
 def test_first_n_match_1():
     with pytest.raises(TypeCheckError):
         first_n_match(
@@ -150,7 +117,7 @@ def test_first_n_match_2():
     with pytest.raises(RuntimeError):
         first_n_match(
             Blk_source_output_arb_num(),
-            np.complex64,  # wrong type
+            np.complex64,  # wrong size of type (it does not check the actual type at time of writing)
             4,  
             [0, 1, 2, 3]  
         )
@@ -176,16 +143,8 @@ def test_first_n_match_4():
         )
 
 
-def test_Blk_source_output_arb_num_1():
-    first_n_match(
-        Blk_source_output_arb_num(),
-        np.float32,
-        4,
-        [0, 1, 2, 3]
-    )
-
-
-@given(st.integers(min_value=2, max_value=20))
+@pytest.mark.slow
+@given(integers(min_value=2, max_value=20))
 @settings(max_examples=10, deadline=timedelta(milliseconds=500))
 def test_Blk_source_output_arb_num_1(n: int):
     first_n_match(
@@ -196,23 +155,14 @@ def test_Blk_source_output_arb_num_1(n: int):
     )
 
 
-@patch('sys.stdout', new_callable=StringIO)
-def test_Blk_arb_num_multiplied_by_three(output: StringIO):
-    numSamples = 4  # arbitrary
-    tb = gr.top_block()
-    arb3 = Blk_arb_num_multiplied_by_three()
-    hea = blocks.head(getSize(np.float32), numSamples)
-    pri = Blk_sink_print()
-    tb.connect(arb3, hea, pri)
-    tb.start()
-    tb.wait()
-    outv = output.getvalue()
-    assert len(outv) > 0
-    spl_nolast = outv.split("\n")[:-1]
-    assert len(spl_nolast) == numSamples
-    assert spl_nolast[:4] == [
-        '0.0', '3.0', '6.0', '9.0'
-    ]
+@pytest.mark.slow
+@given(integers(0, 10_000))
+@settings(max_examples=3, deadline=timedelta(seconds=2))
+def test_Blk_arb_num_multiplied_by_three(n: int):
+    first_n_match(Blk_arb_num_multiplied_by_three(),
+                  np.float32,
+                  n,
+                  list(range(0, n*3, 3)))
 
 
 

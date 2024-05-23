@@ -26,3 +26,7 @@ from pcdr._internal.basictermplot import plot
 
 class AliasError(ValueError):
     pass
+
+
+class NonBitError(ValueError):
+    pass

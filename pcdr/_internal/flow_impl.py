@@ -1,5 +1,3 @@
-import pytest
-pytest.skip(allow_module_level=True)
 from typing import Optional, Union, Literal
 from pathlib import Path
 from gnuradio import gr, blocks, analog, audio, filter
@@ -55,7 +53,6 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable):
         """
         `device_args`: For example, "hackrf=0", etc. See the osmocom docs for a full list.
         `freq`: The frequency which the device will tune to. See note on `set_freq` for more info.
-        >>> 
         """
         self._tb = create_top_block_and_configure_exit()
         self.__freq_offset = 20e3
@@ -157,7 +154,7 @@ def _pick_audio_source(audio_device: Optional[str],
                       repeat: bool) -> Union[audio.source, blocks.wavfile_source]:
     """
     >>> _pick_audio_source("", None, 48000, False)
-    <gnuradio.audio...>
+    <gr_block audio...>
     """
     if audio_device != None and wavfile != None:
         raise ValueError("You must specify either `wavfile` or `device`, not both")

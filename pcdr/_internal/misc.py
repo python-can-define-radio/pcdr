@@ -454,26 +454,12 @@ def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"]
     Mostly useful for testing.
     
     Example:
-    >>> import time
-    >>> state = {"current": np.int64(0)}
-    >>> def count_up() -> np.int64:
-    ...     what_it_was = state["current"]
-    ...     state["current"] += np.int64(1)
-    ...     time.sleep(0.1)
-    ...     return what_it_was
-    >>> srcblk = blockify("source", count_up, in_type=None, out_type=np.int64)
-    >>> snkblk = blockify("sink", print, in_type=np.int64, out_type=None)
-    >>> tb = gr.top_block()
-    >>> tb.connect(srcblk, snkblk)
-    >>> tb.start()
-    >>> time.sleep(0.5)
-    0
-    1
-    2
-    3
-    4
-    >>> tb.stop()
-    >>> tb.wait()
+    >>> from itertools import count
+    >>> from pcdr.unstable.misc2 import first_n_match
+    >>> counter = count()
+    >>> cnext = lambda: next(counter)
+    >>> srcblk = blockify("source", cnext, in_type=None, out_type=np.int32)
+    >>> first_n_match(srcblk, np.int32, 3, [0, 1, 2])
     """
     if category == "source":
         class Blockify_Blk(gr.sync_block):

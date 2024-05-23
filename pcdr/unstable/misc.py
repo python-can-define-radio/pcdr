@@ -12,6 +12,7 @@ from pcdr._internal.wavegen import noisify
 from pcdr._internal.wavegen import TimeData
 
 
+
 T = TypeVar('T')
 
 
@@ -202,12 +203,6 @@ def __repeat_each_item(original: List[T], numtimes: int) -> List[T]:
     return result
 
 
-
-class NonBitError(ValueError):
-    pass
-
-
-
 def __must_be_binary(bits: List[int]) -> None:
     """
     This returns None:
@@ -216,9 +211,10 @@ def __must_be_binary(bits: List[int]) -> None:
     This raises:
     >>> __must_be_binary("101")
     Traceback (most recent call last):
-        ...
-    pcdr._modulators.NonBitError: ...
+      ...
+    pcdr.unstable.NonBitError: ...
     """
+    from pcdr.unstable import NonBitError
     if not all(map(lambda x: x in [1, 0], bits)):
         raise NonBitError('`bits` must be of type List[int], and all of those integers'
                          ' must be either 0 or 1. It cannot be a string, such as "1010".')
@@ -255,8 +251,8 @@ def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float
 
     Examples:
     >>> from pcdr._internal.basictermplot import plot
-    >>> timestamps, data = ook_modulate_at_frequency([1, 0, 1, 1], bit_length=20, samp_rate=40, freq=2)
-    >>> plot(timestamps, data.real, 80, 10)
+    >>> data = ook_modulate_at_frequency([1, 0, 1, 1], bit_length=20, samp_rate=40, freq=2)
+    >>> plot(data.t, data.y.real, 80, 10)
     xmin: 0.00
     xmax: 1.98
     ymin: -1.00
