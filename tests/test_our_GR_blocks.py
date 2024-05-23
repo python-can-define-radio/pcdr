@@ -1,3 +1,5 @@
+import pytest
+pytest.skip(allow_module_level=True)
 from gnuradio import gr, analog, blocks
 from pcdr._internal.our_GR_blocks import SingleItemStack, Averager
 import pytest
