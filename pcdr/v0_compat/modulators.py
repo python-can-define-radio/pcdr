@@ -2,8 +2,7 @@ from typing import List, Iterable, TypeVar, Tuple
 import numpy as np
 
 
-T = TypeVar('T')
-
+T = TypeVar("T")
 
 
 def __repeat_each_item(original: List[T], numtimes: int) -> List[T]:
@@ -22,10 +21,8 @@ def __repeat_each_item(original: List[T], numtimes: int) -> List[T]:
     return result
 
 
-
 class NonBitError(ValueError):
     pass
-
 
 
 def __must_be_binary(bits: List[int]) -> None:
@@ -40,8 +37,10 @@ def __must_be_binary(bits: List[int]) -> None:
     pcdr.modulators.NonBitError: ...
     """
     if not all(map(lambda x: x in [1, 0], bits)):
-        raise NonBitError('`bits` must be of type List[int], and all of those integers'
-                         ' must be either 0 or 1. It cannot be a string, such as "1010".')
+        raise NonBitError(
+            "`bits` must be of type List[int], and all of those integers"
+            ' must be either 0 or 1. It cannot be a string, such as "1010".'
+        )
 
 
 def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> np.ndarray:
@@ -55,16 +54,18 @@ def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> np.ndarray
     Modulating it onto a carrier wave is unnecessary, as transmitting this
     to a GNU Radio osmocom sink will upconvert to the SDR peripheral's carrier frequency.
 
-    If you want your OOK modulation to have a frequency at baseband before 
+    If you want your OOK modulation to have a frequency at baseband before
     hardware upconversion, use the function `ook_modulate_at_frequency`.
-    """ 
+    """
     __must_be_binary(bits)
     result = np.array(__repeat_each_item(bits, bit_length), dtype=dtype)
     assert result.dtype == dtype
     return result
 
 
-def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float, freq: float) -> Tuple[np.ndarray, np.ndarray]:
+def ook_modulate_at_frequency(
+    bits: List[int], bit_length: int, samp_rate: float, freq: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     OOK Modulate at a given frequency. Returns the timestamps and the modulated data.
 
@@ -98,5 +99,3 @@ def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float
     assert result[1].dtype == np.complex64
     assert len(result[0]) == len(result[1]) == (len(bits) * bit_length)
     return result
-
-

@@ -7,12 +7,9 @@ from typing import List, Protocol
 from pcdr._internal.our_GR_blocks import queue_sink
 
 
-
-
-
 # class osmocom_source_to_queue_sink(gr.top_block):
 
-    
+
 #     def __init__(self, center_freq: float, samp_rate: float, chunk_size: int, device_args: str, if_gain: int = 32, bb_gain: int = 42):
 #         gr.top_block.__init__(self, "Top block")
 
@@ -33,7 +30,7 @@ from pcdr._internal.our_GR_blocks import queue_sink
 
 #         self.connect(self.osmosdr_source, self.blocks_stream_to_vector, self.queue_sink)
 
-    
+
 # class file_source_to_queue_sink(gr.top_block):
 
 #     def __init__(self, filename: str, chunk_size: int, repeat: bool):
@@ -44,6 +41,3 @@ from pcdr._internal.our_GR_blocks import queue_sink
 #         self.blocks_stream_to_vector = blocks.stream_to_vector(gr.sizeof_gr_complex, chunk_size)
 #         self.queue_sink = queue_sink(chunk_size)
 #         self.connect(self.file_source, self.blocks_stream_to_vector, self.queue_sink)
-
-
-

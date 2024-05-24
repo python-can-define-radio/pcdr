@@ -11,13 +11,12 @@ from pcdr._internal.types_and_contracts import top_block_and_widget
 from gnuradio import qtgui
 
 
-
 def qt_gui_init_boilerplate(tb: top_block_and_widget, classname: str):
     Qt.QWidget.__init__(tb)
     tb.setWindowTitle("Not titled yet")
     qtgui.util.check_set_qss()
     try:
-        tb.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
+        tb.setWindowIcon(Qt.QIcon.fromTheme("gnuradio-grc"))
     except:
         pass
     tb.top_scroll_layout = Qt.QVBoxLayout()
@@ -39,7 +38,7 @@ def qt_gui_init_boilerplate(tb: top_block_and_widget, classname: str):
             tb.restoreGeometry(tb.settings.value("geometry"))
     except:
         pass
-    
+
 
 ## TODO: Easier waterfall
 

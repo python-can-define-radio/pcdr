@@ -1,13 +1,13 @@
 from typing import Iterable, Callable, Any, Tuple
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from _typeshed import FileDescriptorOrPath
 
 import numpy as np
 
 from pcdr._internal.types_and_contracts import TRealNum
-
 
 
 def writeRealCSV(filename, data_to_write):
@@ -26,14 +26,15 @@ def writeComplexCSV(filename, data_to_write):
             outfile.write(f"{inphase},{quad}\n")
 
 
-def __readCSV(filename_csv: str, samp_rate: float, type_: Callable) -> Tuple[np.ndarray, np.ndarray]:
-    
+def __readCSV(
+    filename_csv: str, samp_rate: float, type_: Callable
+) -> Tuple[np.ndarray, np.ndarray]:
     ## This import must be here to avoid circular imports.
     from pcdr._internal.wavegen import make_timestamps_seconds
 
     with open(filename_csv) as f:
         contents = f.read().splitlines()
-    
+
     num_samples = len(contents)
     max_time = num_samples / samp_rate
     timestamps = make_timestamps_seconds(max_time, num_samples)
@@ -45,5 +46,7 @@ def readRealCSV(filename_csv: str, samp_rate: float) -> Tuple[np.ndarray, np.nda
     return __readCSV(filename_csv, samp_rate, float)
 
 
-def readComplexCSV(filename_csv: str, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
+def readComplexCSV(
+    filename_csv: str, samp_rate: float
+) -> Tuple[np.ndarray, np.ndarray]:
     return __readCSV(filename_csv, samp_rate, complex)

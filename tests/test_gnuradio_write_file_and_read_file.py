@@ -19,5 +19,3 @@
 
 #     loaded = gnuradio_read_file(str(basepath / "samprate_2e6_basic_wave.complex"), chunk_size=2)
 #     assert len(loaded) == len(wave)
-    
-    

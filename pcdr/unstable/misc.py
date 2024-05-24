@@ -12,20 +12,20 @@ from pcdr._internal.wavegen import noisify
 from pcdr._internal.wavegen import TimeData
 
 
-
-T = TypeVar('T')
-
+T = TypeVar("T")
 
 
 @typechecked
-def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None) -> NDArray[np.complex64]:
+def generate_ook_modulated_example_data(
+    noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None
+) -> NDArray[np.complex64]:
     """
     Generate a file with the given `output_filename`.
 
     if `noise` is True, random noise will be added to the generated signal.
     if `message_delay` is True, there will be a pause before the meaningful data starts.
     if `text_source` is any string, a random sentence from it will be used as the message.
-    
+
     Example usage:
 
     text_content = "These are some words, and more words. There are many words in a row in these sentences."
@@ -36,27 +36,27 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
 
     message = "This is an example message."
     if text_source == None:
-        print(f"No text source file specified, so all generated files will contain the message '{message}'")
+        print(
+            f"No text source file specified, so all generated files will contain the message '{message}'"
+        )
     else:
         assert isinstance(text_source, str)
         sentences = text_source.split(".")
         message = random.choice(sentences) + "."
-        
-        
+
     samp_rate = random.randrange(100, 700, 100)
     bit_length = random.randrange(50, 3000, 10)
     freq = random.randrange(10, samp_rate // 5)
-    
+
     with_preamb = "«" + message
     bits = str_to_bin_list(with_preamb)
     baseband_sig = ook_modulate(bits, bit_length)
     fully_modded = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
-    
+
     if message_delay:
-        fm2 = np.concatenate([
-            np.zeros(random.randint(100, 1500), dtype=np.complex64),
-            fully_modded.y
-        ])
+        fm2 = np.concatenate(
+            [np.zeros(random.randint(100, 1500), dtype=np.complex64), fully_modded.y]
+        )
     else:
         fm2 = fully_modded
 
@@ -67,32 +67,33 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
         fm3 = noisify(fm2)
     else:
         fm3 = fm2
-    
+
     assert fm3.dtype == np.complex64
     return fm3
 
 
 @typechecked
-def generate_ook_modulated_example_file(output_filename: str, noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None):
+def generate_ook_modulated_example_file(
+    output_filename: str,
+    noise: bool = False,
+    message_delay: bool = False,
+    text_source: Optional[str] = None,
+):
     """
     Generate a file with the given `output_filename`.
 
     if `noise` is True, random noise will be added to the generated signal.
     if `message_delay` is True, there will be a pause before the meaningful data starts.
     if `text_source` is any string, a random sentence from it will be used as the message.
-    
+
     Example usage:
 
     text_content = "These are some words, and more words. There are many words in a row in these sentences."
     generate_ook_modulated_example_file("generated_example_file.complex", text_source=text_content)
     """
-    
+
     data = generate_ook_modulated_example_data(noise, message_delay, text_source)
     data.tofile(output_filename)
-
-
-
-
 
 
 @typechecked
@@ -101,7 +102,7 @@ def bytes_to_bin_list(b: Union[bytes, List[int]]) -> List[int]:
     Converts each item in b to bits.
 
     Examples:
-    
+
     >>> bytes_to_bin_list(b"C")
     [0, 1, 0, 0, 0, 0, 1, 1]
 
@@ -157,13 +158,13 @@ def int_to_bin_list(message: NDArray) -> List[int]:
 
     >>> int_to_bin_list(np.array([0x43], dtype=np.uint8))
     [0, 1, 0, 0, 0, 0, 1, 1]
-    
+
     >>> int_to_bin_list(np.array([0x43, 0x42], dtype=np.uint8))
     [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-    
+
     >>> int_to_bin_list(np.array([0x4342], dtype=np.uint16))
     [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-	"""
+    """
 
     if message.dtype in [np.int8, np.uint8]:
         bitlength = 8
@@ -176,12 +177,12 @@ def int_to_bin_list(message: NDArray) -> List[int]:
     else:
         raise ValueError("Unsupported dtype")
 
-    ret = [0]*bitlength*len(message)
+    ret = [0] * bitlength * len(message)
     bitlist_index = 0
-    shift_list = list(reversed(range(0,bitlength)))
+    shift_list = list(reversed(range(0, bitlength)))
     for x in message:
         for bit_index in shift_list:
-            if x&(1<<bit_index) > 0:
+            if x & (1 << bit_index) > 0:
                 ret[bitlist_index] = 1
             bitlist_index = bitlist_index + 1
     return ret
@@ -215,9 +216,12 @@ def __must_be_binary(bits: List[int]) -> None:
     pcdr.unstable.NonBitError: ...
     """
     from pcdr.unstable import NonBitError
+
     if not all(map(lambda x: x in [1, 0], bits)):
-        raise NonBitError('`bits` must be of type List[int], and all of those integers'
-                         ' must be either 0 or 1. It cannot be a string, such as "1010".')
+        raise NonBitError(
+            "`bits` must be of type List[int], and all of those integers"
+            ' must be either 0 or 1. It cannot be a string, such as "1010".'
+        )
 
 
 ## Don't typecheck this one for now because we want to allow `bits`
@@ -233,9 +237,9 @@ def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> NDArray:
     Modulating it onto a carrier wave is unnecessary, as transmitting this
     to a GNU Radio osmocom sink will upconvert to the SDR peripheral's carrier frequency.
 
-    If you want your OOK modulation to have a frequency at baseband before 
+    If you want your OOK modulation to have a frequency at baseband before
     hardware upconversion, use the function `ook_modulate_at_frequency`.
-    """ 
+    """
     __must_be_binary(bits)
     result = np.array(__repeat_each_item(bits, bit_length), dtype=dtype)
     assert isinstance(result, np.ndarray)
@@ -244,8 +248,9 @@ def ook_modulate(bits: List[int], bit_length: int, dtype=np.uint8) -> NDArray:
 
 
 ## Don't typecheck this one for now; see note on `ook_modulate`
-def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float, freq: float
-                ) -> TimeData:
+def ook_modulate_at_frequency(
+    bits: List[int], bit_length: int, samp_rate: float, freq: float
+) -> TimeData:
     """
     OOK Modulate at a given frequency. Returns the timestamps and the modulated data.
 
@@ -275,7 +280,9 @@ def ook_modulate_at_frequency(bits: List[int], bit_length: int, samp_rate: float
 
     baseband_sig = ook_modulate(bits, bit_length)
     result = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
-    assert result.t.dtype == np.float64    # TODO: these may be unnecessary now that I know how to do NDArray type annotations properly
+    assert (
+        result.t.dtype == np.float64
+    )  # TODO: these may be unnecessary now that I know how to do NDArray type annotations properly
     assert result.y.dtype == np.complex64
     assert len(result.y) == len(result.y) == (len(bits) * bit_length)
     return result
@@ -292,7 +299,7 @@ def docstring_plot(xdata: list, ydata: list, xsize: int = 40, ysize: int = 7):
     -0.33┤  ▌▗▘ ▚ ▌ ▚ ▌ ▝▖▞ ▐ ▐ ▝▖▐  ▌▐  ▚ │
     -1.00┤  ▝▟   ▜   ▚▘  ▝▌  ▚▌  ▝▞  ▝▞   ▚│
          └┬───────┬───────┬───────┬───────┬┘
-         0.0    12.2    24.5    36.8   49.0 
+         0.0    12.2    24.5    36.8   49.0
     >>> print(docstring_plot(x, np.sin(x), xsize=len(x), ysize=20))
          ┌───────────────────────────────────────────┐
      1.00┤ ▗    ▗▌   ▗▌    ▗     ▗    ▟     ▖        │
@@ -313,7 +320,7 @@ def docstring_plot(xdata: list, ydata: list, xsize: int = 40, ysize: int = 7):
          │   ▝▟    █    ▙▘    ▚▌   ▐▌   ▐▞    ▌▞   ▝▖│
     -1.00┤    ▝    ▜    ▝          ▝▌   ▝▌    ▝     ▝│
          └┬──────────┬─────────┬──────────┬─────────┬┘
-         0.0       12.2      24.5       36.8     49.0 
+         0.0       12.2      24.5       36.8     49.0
     """
     plotext.theme("clear")
     plotext.plot_size(xsize, ysize)

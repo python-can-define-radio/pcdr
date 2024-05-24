@@ -10,7 +10,6 @@ from pcdr._internal.misc import blockify
 from pcdr.unstable.misc2 import first_n_match
 
 
-
 @pytest.mark.slow
 @given(integers(0, 100_000))
 @settings(max_examples=5, deadline=timedelta(seconds=4))

@@ -31,22 +31,23 @@ from typeguard import typechecked
 
 
 class vector_to_osmocom_sink(gr.top_block):
-
     @typechecked
-    def __init__(self,
-                 data: NDArray[np.complex64],
-                 center_freq: float,
-                 samp_rate: float,
-                 if_gain: int,
-                 device_args: str,
-                 repeat: bool):
+    def __init__(
+        self,
+        data: NDArray[np.complex64],
+        center_freq: float,
+        samp_rate: float,
+        if_gain: int,
+        device_args: str,
+        repeat: bool,
+    ):
         """device_args: "hackrf=0" is common."""
 
         ## TODO: make the device name be passed in rather than always "hackrf"
         validate_hack_rf_transmit("hackrf", samp_rate, center_freq, if_gain)
 
         gr.top_block.__init__(self, "Top block")
-        
+
         self.vector_source = blocks.vector_source_c(data, repeat)
 
         self.osmosdr_sink = osmosdr.sink(args=device_args)
@@ -88,10 +89,11 @@ class vector_to_file_sink(gr.top_block):
 
 class vector_to_zmqpub_sink(gr.top_block):
     """UNTESTED"""
+
     def __init__(self, port: int, data: np.ndarray, repeat: bool):
         gr.top_block.__init__(self, "Top block")
         self.vector_source = blocks.vector_source_c(data, repeat)
-        self.zmqpub_sink = zeromq.pub_sink(gr.sizeof_gr_complex, 1, f'tcp://0.0.0.0:{port}', 100, False, -1)
+        self.zmqpub_sink = zeromq.pub_sink(
+            gr.sizeof_gr_complex, 1, f"tcp://0.0.0.0:{port}", 100, False, -1
+        )
         self.connect(self.vector_source, self.zmqpub_sink)
-        
-        

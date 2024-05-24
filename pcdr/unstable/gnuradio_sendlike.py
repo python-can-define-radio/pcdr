@@ -7,12 +7,16 @@ from typing import List, Optional, Sequence, TypeVar, Union, Type
 import numpy as np
 
 # from pcdr.unstable.osmocom_queued_tx_flowgraph import queue_to_osmocom_sink, queue_to_print_sink, queue_to_string_file_sink, queue_to_file_sink, queue_to_zmqpub_sink
-from pcdr._internal.misc import SimpleQueueTypeWrapped, queue_to_list, prepend_zeros_, configure_graceful_exit
+from pcdr._internal.misc import (
+    SimpleQueueTypeWrapped,
+    queue_to_list,
+    prepend_zeros_,
+    configure_graceful_exit,
+)
 from pcdr._internal.vector_tx_flowgraphs import vector_to_file_sink
 from pcdr._internal.types_and_contracts import TRealNum, TRealOrComplexNum
 from pcdr._internal.queue_to_guisink_flowgraph import queue_to_guisink
 from pcdr._internal.vector_to_guisink_flowgraph import vector_to_guisink
-
 
 
 # try:
@@ -23,7 +27,7 @@ from pcdr._internal.vector_to_guisink_flowgraph import vector_to_guisink
 
 
 #     def _configure_and_run_gui_flowgraph(top_block_cls: Type[gr.top_block], args):
-#         """The portion of GNU Radio boilerplate that 
+#         """The portion of GNU Radio boilerplate that
 #         sets up the QT GUI Application."""
 #         if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
 #             style = gr.prefs().get_string('qtgui', 'style', 'raster')
@@ -60,7 +64,7 @@ def _pad_chunk_queue(data: np.ndarray, chunk_size: int) -> SimpleQueueTypeWrappe
     - Pad `data` to a multiple of `chunk_size`
     - Split into chunks of that size
     - Convert to a queue of numpy arrays for gnuradio use
-    
+
     Examples:
     >>> testdata = np.array([1, 2, 3], dtype=np.uint8)
     >>> pcq = _pad_chunk_queue(testdata, 2)
@@ -76,18 +80,20 @@ def _pad_chunk_queue(data: np.ndarray, chunk_size: int) -> SimpleQueueTypeWrappe
     >>> assert (nparry == should_be).all()
     """
     assert 0 < chunk_size
-    assert len(data.shape) == 1  # Require 1-dimensional array (`shape` has only one item, that is, one dimension)
+    assert (
+        len(data.shape) == 1
+    )  # Require 1-dimensional array (`shape` has only one item, that is, one dimension)
     npdata = np.array(data, dtype=np.complex64)
     assert type(npdata) == np.ndarray
     assert npdata.dtype == np.complex64
     assert len(npdata.shape) == 1
-    
+
     ## Pad to next full chunk size, then chunk
     padlen = chunk_size - (len(npdata) % chunk_size)
     if padlen != chunk_size:
         npdata = np.concatenate([npdata, np.zeros(padlen, dtype=np.complex64)])
     assert len(npdata) % chunk_size == 0
-    chunked = np.split(npdata, int(len(npdata)/chunk_size))
+    chunked = np.split(npdata, int(len(npdata) / chunk_size))
 
     q = SimpleQueueTypeWrapped(np.ndarray, np.complex64, chunk_size)
     for item in chunked:
@@ -168,7 +174,7 @@ def _pad_chunk_queue(data: np.ndarray, chunk_size: int) -> SimpleQueueTypeWrappe
 
 
 # def _gnuradio_network_pub(data: np.ndarray, port: int = 8008, chunk_size: int = 1024):
-#     """NOT FULLY TESTED. 
+#     """NOT FULLY TESTED.
 #     Use a TCP socket to transmit data to a host on the network (also works for localhost).
 #     (Note: implemented using ZeroMQ.)"""
 #     q = _pad_chunk_queue(data, chunk_size)

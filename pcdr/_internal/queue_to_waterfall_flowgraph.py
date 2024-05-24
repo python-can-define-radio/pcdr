@@ -31,14 +31,13 @@ _queue_to_waterfall__queue_source = queue_source
 
 
 class queue_to_waterfall(gr.top_block, Qt.QWidget):
-
     def __init__(self):
         gr.top_block.__init__(self, "Not titled yet")
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
         try:
-            self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
+            self.setWindowIcon(Qt.QIcon.fromTheme("gnuradio-grc"))
         except:
             pass
         self.top_scroll_layout = Qt.QVBoxLayout()
@@ -77,25 +76,20 @@ class queue_to_waterfall(gr.top_block, Qt.QWidget):
         ##TODO put data in queue for testing.
         self.queue_source = queue_source(external_queue, chunk_size)
         self.qtgui_waterfall_sink_x_0 = qtgui.waterfall_sink_c(
-            1024, #size
-            firdes.WIN_BLACKMAN_HARRIS, #wintype
-            0, #fc
-            samp_rate, #bw
-            "", #name
-            1 #number of inputs
+            1024,  # size
+            firdes.WIN_BLACKMAN_HARRIS,  # wintype
+            0,  # fc
+            samp_rate,  # bw
+            "",  # name
+            1,  # number of inputs
         )
         self.qtgui_waterfall_sink_x_0.set_update_time(0.10)
         self.qtgui_waterfall_sink_x_0.enable_grid(False)
         self.qtgui_waterfall_sink_x_0.enable_axis_labels(True)
 
-
-
-        labels = ['', '', '', '', '',
-                  '', '', '', '', '']
-        colors = [0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-                  1.0, 1.0, 1.0, 1.0, 1.0]
+        labels = ["", "", "", "", "", "", "", "", "", ""]
+        colors = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
         for i in range(1):
             if len(labels[i]) == 0:
@@ -107,11 +101,11 @@ class queue_to_waterfall(gr.top_block, Qt.QWidget):
 
         self.qtgui_waterfall_sink_x_0.set_intensity_range(-140, 10)
 
-        self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0.pyqwidget(), Qt.QWidget)
+        self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(
+            self.qtgui_waterfall_sink_x_0.pyqwidget(), Qt.QWidget
+        )
         self.top_grid_layout.addWidget(self._qtgui_waterfall_sink_x_0_win)
-        self.blocks_null_source_0 = blocks.null_source(gr.sizeof_gr_complex*1)
-
-
+        self.blocks_null_source_0 = blocks.null_source(gr.sizeof_gr_complex * 1)
 
         ##################################################
         # Connections
@@ -129,7 +123,6 @@ class queue_to_waterfall(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.qtgui_waterfall_sink_x_0.set_frequency_range(0, self.samp_rate)
-
 
 
 # def main(top_block_cls=queue_to_waterfall, options=None):

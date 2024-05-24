@@ -21,14 +21,13 @@ from typing import Tuple
 
 
 class vector_to_guisink(gr.top_block, Qt.QWidget):
-
     def __init__(self, center_freq: float, samp_rate: float, data: Tuple[complex]):
         gr.top_block.__init__(self, "Not titled yet")
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
         try:
-            self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
+            self.setWindowIcon(Qt.QIcon.fromTheme("gnuradio-grc"))
         except:
             pass
         self.top_scroll_layout = Qt.QVBoxLayout()
@@ -53,33 +52,28 @@ class vector_to_guisink(gr.top_block, Qt.QWidget):
         except:
             pass
 
-
-
         ##################################################
         # Blocks
         ##################################################
         self.vector_source = blocks.vector_source_c(data)
         self.blocks_throttle = blocks.throttle(gr.sizeof_gr_complex, samp_rate, True)
         self.qtgui_sink = qtgui.sink_c(
-            1024, #fftsize
-            firdes.WIN_BLACKMAN_HARRIS, #wintype
-            0, #fc
-            samp_rate, #bw
-            "", #name
-            True, #plotfreq
-            True, #plotwaterfall
-            True, #plottime
-            True #plotconst
+            1024,  # fftsize
+            firdes.WIN_BLACKMAN_HARRIS,  # wintype
+            0,  # fc
+            samp_rate,  # bw
+            "",  # name
+            True,  # plotfreq
+            True,  # plotwaterfall
+            True,  # plottime
+            True,  # plotconst
         )
-        self.qtgui_sink.set_update_time(1.0/10)
+        self.qtgui_sink.set_update_time(1.0 / 10)
         self._qtgui_sink_win = sip.wrapinstance(self.qtgui_sink.pyqwidget(), Qt.QWidget)
 
         self.qtgui_sink.enable_rf_freq(False)
 
         self.top_grid_layout.addWidget(self._qtgui_sink_win)
-        
-
-
 
         ##################################################
         # Connections
@@ -90,4 +84,3 @@ class vector_to_guisink(gr.top_block, Qt.QWidget):
         self.settings = Qt.QSettings("GNU Radio", "queue_to_guisink")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
-

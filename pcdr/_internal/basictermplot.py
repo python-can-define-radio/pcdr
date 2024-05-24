@@ -5,7 +5,6 @@ from typeguard import typechecked
 from io import StringIO
 
 
-
 def fmntDig(x, round_ndigits):
     """
     >>> fmntDig(1.2345, 2)
@@ -46,12 +45,18 @@ def rescale(arry: np.ndarray, lower_limit: int, upper_limit: int):
     return rescaled + lower_limit
 
 
-
-@typechecked    
-def plot(xs: np.ndarray, ys: np.ndarray, xoutputsize: Optional[int] = None, youtputsize: int = 8, round_ndigits: int = 2, output_stream: Optional[TextIO] = None) -> None:
+@typechecked
+def plot(
+    xs: np.ndarray,
+    ys: np.ndarray,
+    xoutputsize: Optional[int] = None,
+    youtputsize: int = 8,
+    round_ndigits: int = 2,
+    output_stream: Optional[TextIO] = None,
+) -> None:
     """
     A basic plot function, used primarily for docstring (and doctest) examples.
-    
+
     >>> xs = np.array([0, 10])
     >>> ys = np.array([0, 30])
     >>> plot(xs, ys, 2, 2)
@@ -93,15 +98,15 @@ def plot(xs: np.ndarray, ys: np.ndarray, xoutputsize: Optional[int] = None, yout
       ...
     ValueError: ...
     """
-    
+
     if np.iscomplex(xs).any():
         raise ValueError("Complex values are not allowed")
     if np.iscomplex(ys).any():
         raise ValueError("Complex values are not allowed")
-    
+
     if xoutputsize == None:
         xoutputsize = len(xs)
-        
+
     assert isinstance(xoutputsize, int)
 
     drawing = np.zeros((youtputsize, xoutputsize))
@@ -117,11 +122,11 @@ def plot(xs: np.ndarray, ys: np.ndarray, xoutputsize: Optional[int] = None, yout
     assert (scaledx < xoutputsize).all()
     assert (0 <= scaledy).all()
     assert (scaledy < youtputsize).all()
-    
+
     invertedy = youtputsize - scaledy - 1
     assert (0 <= invertedy).all()
     assert (invertedy < youtputsize).all()
-    
+
     drawing[invertedy, scaledx] = 1
 
     @typechecked

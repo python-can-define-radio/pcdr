@@ -4,16 +4,18 @@ from typing import Optional, List, Tuple, Literal
 from typeguard import typechecked
 
 
-import pytest; pytest.skip(allow_module_level=True)
+import pytest
+
+pytest.skip(allow_module_level=True)
 
 
 def createTimestamps(seconds: float, num_samples: int, dtype=np.float64) -> np.ndarray:
     """Creates timestamps from zero up to the given maximum number of seconds.
     Implemented using np.linspace().
-    
+
     Note: We use np.float64 as the default dtype because np.float32 was causing float rounding issues
     that became worse with larger time values (as float rounding issues usually do).
-    
+
     Example:
     >>> createTimestamps(2, 10)
     array([0. , 0.2, 0.4, 0.6, 0.8, 1. , 1.2, 1.4, 1.6, 1.8])
@@ -21,11 +23,7 @@ def createTimestamps(seconds: float, num_samples: int, dtype=np.float64) -> np.n
     assert 0 <= seconds
     assert 0 <= num_samples
     result = np.linspace(
-        start=0,
-        stop=seconds,
-        num=num_samples,
-        endpoint=False,
-        dtype=dtype
+        start=0, stop=seconds, num=num_samples, endpoint=False, dtype=dtype
     )
     assert result.dtype == dtype
     assert len(result) == num_samples
@@ -33,10 +31,12 @@ def createTimestamps(seconds: float, num_samples: int, dtype=np.float64) -> np.n
     return result
 
 
-def createTimestamps_samprate(samp_rate: float, num_samples: int, dtype=np.float64) -> np.ndarray:
+def createTimestamps_samprate(
+    samp_rate: float, num_samples: int, dtype=np.float64
+) -> np.ndarray:
     """Creates `num_samples` timestamps spaced by `1/samp_rate`.
     Implemented using np.linspace().
-    
+
     Examples:
     >>> createTimestamps_samprate(5, 10)
     array([0. , 0.2, 0.4, 0.6, 0.8, 1. , 1.2, 1.4, 1.6, 1.8])
@@ -48,15 +48,15 @@ def createTimestamps_samprate(samp_rate: float, num_samples: int, dtype=np.float
     that became worse with larger time values (as float rounding issues usually do)."""
     assert 0 < samp_rate
     assert 0 <= num_samples
-    
+
     result = np.linspace(
-            start=0,
-            stop=num_samples/samp_rate,
-            num=num_samples,
-            endpoint=False,
-            dtype=dtype
-        )
-    
+        start=0,
+        stop=num_samples / samp_rate,
+        num=num_samples,
+        endpoint=False,
+        dtype=dtype,
+    )
+
     assert result.dtype == dtype
     assert len(result) == num_samples
     assert (0 <= result).all()
@@ -83,7 +83,7 @@ def createTimestamps_samprate(samp_rate: float, num_samples: int, dtype=np.float
 
 def makeRealWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
     """Return a sine wave.
-    
+
     Example:
     >>> from pcdr.basictermplot import plot
     >>> timestamps = createTimestamps(1, 50)
@@ -109,9 +109,9 @@ def makeRealWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
 
 def makeComplexWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
     """Return a complex wave.
-    
+
     The real part is cosine (starts at 1); the imaginary part is sine (starts at 0).
-    
+
     Example:
     >>> from pcdr.basictermplot import plot
     >>> timestamps = createTimestamps(1, 50)
@@ -152,13 +152,13 @@ def makeComplexWave_basic(timestamps: np.ndarray, freq: float) -> np.ndarray:
     return result
 
 
-
 class AliasError(ValueError):
     pass
 
 
-
-def isAliasingWhenDisallowed(allowAliasing: bool, freq: float, samp_rate: float) -> bool:
+def isAliasingWhenDisallowed(
+    allowAliasing: bool, freq: float, samp_rate: float
+) -> bool:
     """
     Examples:
 
@@ -176,24 +176,28 @@ def isAliasingWhenDisallowed(allowAliasing: bool, freq: float, samp_rate: float)
     >>> isAliasingWhenDisallowed(allowAliasing, acceptable_freq, samp_rate)
     False
     """
-    return (not allowAliasing) and (abs(freq) > samp_rate/2)
+    return (not allowAliasing) and (abs(freq) > samp_rate / 2)
 
 
 def aliasingError(allowAliasing: bool, freq: float, samp_rate: float) -> None:
     """Gives a detailed Aliasing error message if it's aliasing when it shouldn't.
     :raises AliasError:"""
     if isAliasingWhenDisallowed(allowAliasing, freq, samp_rate):
-        raise AliasError(f"For a sample rate of {samp_rate}, the highest frequency that can be faithfully represented is {samp_rate/2}. The specified freq, {freq}, is greater than the limit specified by Shannon/Nyquist/Kotelnikov/Whittaker (commonly called the Nyquist frequency).")
+        raise AliasError(
+            f"For a sample rate of {samp_rate}, the highest frequency that can be faithfully represented is {samp_rate/2}. The specified freq, {freq}, is greater than the limit specified by Shannon/Nyquist/Kotelnikov/Whittaker (commonly called the Nyquist frequency)."
+        )
 
 
-def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeComplexWave_numsamps(
+    num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns a tuple (timestamps, wave).
-    
+
     The real part of the wave is cosine (starts at 1); the imaginary part is sine (starts at 0).
 
     :raises AliasError: if isAliasingWhenDisallowed
-    
+
     Example:
     >>> from pcdr.basictermplot import plot
     >>> timestamps, wave = makeComplexWave_numsamps(50, 50, 2)
@@ -234,12 +238,14 @@ def makeComplexWave_numsamps(num_samples: int, samp_rate: float, freq: float, al
     return timestamps, wave
 
 
-def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeRealWave_numsamps(
+    num_samples: int, samp_rate: float, freq: float, allowAliasing: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Return a Real wave.
 
     :raises AliasError: if isAliasingWhenDisallowed
-    
+
     Example:
     >>> from pcdr.basictermplot import plot
     >>> timestamps, wave = makeRealWave_numsamps(50, 50, 2)
@@ -267,14 +273,16 @@ def makeRealWave_numsamps(num_samples: int, samp_rate: float, freq: float, allow
     return timestamps, wave
 
 
-def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeComplexWave_time(
+    seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns a tuple (timestamps, wave).
-    
+
     The real part of the wave is cosine (starts at 1); the imaginary part is sine (starts at 0).
 
     :raises AliasError: if isAliasingWhenDisallowed
-    
+
     Example:
     >>> from pcdr.basictermplot import plot
     >>> timestamps, wave = makeComplexWave_time(1, 50, 2)
@@ -314,12 +322,14 @@ def makeComplexWave_time(seconds: float, samp_rate: float, freq: float, allowAli
     return timestamps, wave
 
 
-def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeRealWave_time(
+    seconds: float, samp_rate: float, freq: float, allowAliasing: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Return a Real wave.
 
     :raises AliasError: if isAliasingWhenDisallowed
-    
+
     Example:
     >>> from pcdr.basictermplot import plot
     >>> timestamps, wave = makeRealWave_time(1, 50, 2)
@@ -347,19 +357,22 @@ def makeRealWave_time(seconds: float, samp_rate: float, freq: float, allowAliasi
 
 
 @typechecked
-def makeWave(samp_rate: float,
-             freq: float,
-             type_: Literal["real", "complex"],
-             *, seconds: Optional[float] = None,
-             num: Optional[int] = None,
-             allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def makeWave(
+    samp_rate: float,
+    freq: float,
+    type_: Literal["real", "complex"],
+    *,
+    seconds: Optional[float] = None,
+    num: Optional[int] = None,
+    allowAliasing: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     TODO:
      - finish writing tests
      - Write implementation that makes these tests pass
      - Change lessons to use makeWave
      - Add @typechecked to all funcs in this file
-    
+
     >>> from pcdr.basictermplot import plot
     >>> timestamps, wave = makeWave(50, 3, "real", seconds=1)
     >>> plot(timestamps, wave)
@@ -447,7 +460,7 @@ def makeWave(samp_rate: float,
     ~█████████o██████o█████████o██████████████████████o█████████o
     ~██████████o████o███████████o████o██████████o████o███████████
     ~███████████oooo█████████████o█oo████████████oooo████████████
-    
+
     >> makeWave(10, 2, "real")
     Traceback:
       ...
@@ -485,9 +498,11 @@ def makeWave(samp_rate: float,
             raise ValueError("This will never happen if the @typechecked works")
     else:
         raise Exception("Impossible case")
-    
 
-def multiply_by_complex_wave(baseband_sig: np.ndarray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+
+def multiply_by_complex_wave(
+    baseband_sig: np.ndarray, samp_rate: float, freq: float, allowAliasing: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns a tuple (timestamps, mult).
 
@@ -509,7 +524,9 @@ def multiply_by_complex_wave(baseband_sig: np.ndarray, samp_rate: float, freq: f
     ~███████████oo███████oo██████████████████████████████████████████
     ~█████████████ooooooo████████████████████████████████████████████
     """
-    timestamps, wave = makeComplexWave_numsamps(len(baseband_sig), samp_rate, freq, allowAliasing)
+    timestamps, wave = makeComplexWave_numsamps(
+        len(baseband_sig), samp_rate, freq, allowAliasing
+    )
     mult = np.complex64(baseband_sig) * wave
     assert len(timestamps) == len(mult) == len(baseband_sig)
     assert timestamps.dtype == np.float64
@@ -517,7 +534,9 @@ def multiply_by_complex_wave(baseband_sig: np.ndarray, samp_rate: float, freq: f
     return timestamps, mult
 
 
-def multiply_by_real_wave(baseband_sig: np.ndarray, samp_rate: float, freq: float, allowAliasing: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+def multiply_by_real_wave(
+    baseband_sig: np.ndarray, samp_rate: float, freq: float, allowAliasing: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns a tuple (timestamps, mult).
 
@@ -539,7 +558,9 @@ def multiply_by_real_wave(baseband_sig: np.ndarray, samp_rate: float, freq: floa
     ~███████████████████oo███████oo██████████████████████████████████
     ~█████████████████████ooooooo████████████████████████████████████
     """
-    timestamps, wave = makeRealWave_numsamps(len(baseband_sig), samp_rate, freq, allowAliasing)
+    timestamps, wave = makeRealWave_numsamps(
+        len(baseband_sig), samp_rate, freq, allowAliasing
+    )
     mult = np.float32(baseband_sig) * wave
     assert len(timestamps) == len(mult) == len(baseband_sig)
     assert timestamps.dtype == np.float64
@@ -552,7 +573,7 @@ def random_normal(size: int, dtype=np.float32, seed=None) -> np.ndarray:
     returns a numpy array of length `size` containing normally distributed.
 
     `seed` is optional, and mostly just used for testing the function.
-    
+
     TODO >>> random_normal(size=3, seed=0)
     array([ 1.117622 , -1.3871249, -0.4265716], dtype=float32)
 
@@ -586,25 +607,33 @@ def noisify(data: np.ndarray, amplitude=1, seed=None) -> np.ndarray:
     if data.dtype == np.float32:
         randnoise = random_normal(len(data), dtype=np.float32, seed=seed)
     elif data.dtype == np.complex64:
-        randnoisereal = np.complex64(random_normal(len(data), dtype=np.float32, seed=seed))
-        randnoiseimag = np.complex64(random_normal(len(data), dtype=np.float32, seed=seed))
+        randnoisereal = np.complex64(
+            random_normal(len(data), dtype=np.float32, seed=seed)
+        )
+        randnoiseimag = np.complex64(
+            random_normal(len(data), dtype=np.float32, seed=seed)
+        )
         randnoise = randnoisereal + (1j * randnoiseimag)  # type: ignore[assignment]
     else:
-        raise NotImplementedError("Currently, this only works for these dtypes: float32, complex64.")
+        raise NotImplementedError(
+            "Currently, this only works for these dtypes: float32, complex64."
+        )
     assert randnoise.dtype == data.dtype
     result = data + randnoise
     assert result.dtype == data.dtype
     return result
 
 
-def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None) -> np.ndarray:
+def generate_ook_modulated_example_data(
+    noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None
+) -> np.ndarray:
     """
     Generate a file with the given `output_filename`.
 
     if `noise` is True, random noise will be added to the generated signal.
     if `message_delay` is True, there will be a pause before the meaningful data starts.
     if `text_source` is any string, a random sentence from it will be used as the message.
-    
+
     Example usage:
 
     text_content = "These are some words, and more words. There are many words in a row in these sentences."
@@ -612,52 +641,60 @@ def generate_ook_modulated_example_data(noise: bool = False, message_delay: bool
     """
     message = "This is an example message."
     from pcdr.v0_compat import str_to_bin_list, ook_modulate
+
     if text_source == None:
-        print(f"No text source file specified, so all generated files will contain the message '{message}'")
+        print(
+            f"No text source file specified, so all generated files will contain the message '{message}'"
+        )
     else:
         assert isinstance(text_source, str)
         sentences = text_source.split(".")
         message = random.choice(sentences) + "."
-        
-        
+
     samp_rate = random.randrange(100, 700, 100)
     bit_length = random.randrange(50, 3000, 10)
     freq = random.randrange(10, samp_rate // 5)
-    
+
     bits = str_to_bin_list(message)
     baseband_sig = ook_modulate(bits, bit_length)
     timestamps, fully_modded = multiply_by_complex_wave(baseband_sig, samp_rate, freq)
     if message_delay:
-        fully_modded = np.concatenate([
-            np.zeros(random.randint(100, 1500), dtype=np.complex64),
-            fully_modded
-        ])
+        fully_modded = np.concatenate(
+            [np.zeros(random.randint(100, 1500), dtype=np.complex64), fully_modded]
+        )
     if noise:
         fully_modded = noisify(fully_modded)
-    
+
     assert fully_modded.dtype == np.complex64
     return fully_modded
 
 
-def generate_ook_modulated_example_file(output_filename: str, noise: bool = False, message_delay: bool = False, text_source: Optional[str] = None):
+def generate_ook_modulated_example_file(
+    output_filename: str,
+    noise: bool = False,
+    message_delay: bool = False,
+    text_source: Optional[str] = None,
+):
     """
     Generate a file with the given `output_filename`.
 
     if `noise` is True, random noise will be added to the generated signal.
     if `message_delay` is True, there will be a pause before the meaningful data starts.
     if `text_source` is any string, a random sentence from it will be used as the message.
-    
+
     Example usage:
 
     text_content = "These are some words, and more words. There are many words in a row in these sentences."
     generate_ook_modulated_example_file("generated_example_file.complex", text_source=text_content)
     """
-    
+
     data = generate_ook_modulated_example_data(noise, message_delay, text_source)
     data.tofile(output_filename)
 
 
-def make_fft_positive_freqs_only(sig: np.ndarray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]:
+def make_fft_positive_freqs_only(
+    sig: np.ndarray, samp_rate: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Computes an fft, returns only the positive frequencies.
     Return value is a tuple: (sample_freqs, fft_mag).
@@ -708,6 +745,6 @@ def make_fft(sig: np.ndarray, samp_rate: float) -> Tuple[np.ndarray, np.ndarray]
     """
     windowed = sig * np.hamming(len(sig))
     fft_result = np.fft.fftshift(np.fft.fft(windowed))
-    sample_freqs = np.fft.fftshift(np.fft.fftfreq(len(windowed), 1/samp_rate))
+    sample_freqs = np.fft.fftshift(np.fft.fftfreq(len(windowed), 1 / samp_rate))
     fft_mag = abs(fft_result)
     return sample_freqs, fft_mag

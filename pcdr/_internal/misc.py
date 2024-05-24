@@ -3,18 +3,13 @@ import signal
 import sys
 
 from typing import Any
-from typing import (
-    Union, Type, overload,
-    Literal, Callable, Type, Optional,
-    List
-)
+from typing import Union, Type, overload, Literal, Callable, Type, Optional, List
 import attrs
 from attrs import field, validators
 from gnuradio import gr
 import numpy as np
 import osmosdr
 from typeguard import typechecked
-
 
 
 class DeviceParameterError(ValueError):
@@ -24,27 +19,40 @@ class DeviceParameterError(ValueError):
 class HACKRF_ERRORS:
     """Just an organizational structure. Not intended for instantiation or mutation."""
 
-    SAMP_RATE = ("The HackRF One is only capable of sample rates "
-            "between 2 Million samples per second (2e6) and "
-            "20 Million samples per second (20e6). "
-            f"Your specified sample rate was outside of this range.")
-    CENTER_FREQ = ("The HackRF One is only capable of center frequencies "
-            "between 1 MHz (1e6) and 6 GHz (6e9). "
-            f"Your specified frequency was outside of this range.")
-    RX_IF_GAIN = ("The HackRF One, when in receive mode, is only capable "
-            "of the following IF gain settings: "
-            "[0, 8, 16, 24, 32, 40]. "
-            f"Your specified IF gain was not one of these options.")
-    RX_BB_GAIN = ("The HackRF One, when in receive mode, is only capable "
-            "of the following BB gain settings: "
-            "[0, 2, 4, 6, ..., 56, 58, 60, 62]. "
-            f"Your specified BB gain was not one of these options.")
-    TX_IF_GAIN = ("The HackRF One, when in transmit mode, is only capable "
-            "of the following if gain settings: "
-            "[0, 1, 2, 3, ..., 45, 46, 47]. "
-            f"Your specified if gain was not one of these options.")
-    TX_BB_GAIN = ("The HackRF One, when in transmit mode, does not have a BB Gain."
-            "We chose to require that it be equal to zero to reduce the risk of errors.")
+    SAMP_RATE = (
+        "The HackRF One is only capable of sample rates "
+        "between 2 Million samples per second (2e6) and "
+        "20 Million samples per second (20e6). "
+        f"Your specified sample rate was outside of this range."
+    )
+    CENTER_FREQ = (
+        "The HackRF One is only capable of center frequencies "
+        "between 1 MHz (1e6) and 6 GHz (6e9). "
+        f"Your specified frequency was outside of this range."
+    )
+    RX_IF_GAIN = (
+        "The HackRF One, when in receive mode, is only capable "
+        "of the following IF gain settings: "
+        "[0, 8, 16, 24, 32, 40]. "
+        f"Your specified IF gain was not one of these options."
+    )
+    RX_BB_GAIN = (
+        "The HackRF One, when in receive mode, is only capable "
+        "of the following BB gain settings: "
+        "[0, 2, 4, 6, ..., 56, 58, 60, 62]. "
+        f"Your specified BB gain was not one of these options."
+    )
+    TX_IF_GAIN = (
+        "The HackRF One, when in transmit mode, is only capable "
+        "of the following if gain settings: "
+        "[0, 1, 2, 3, ..., 45, 46, 47]. "
+        f"Your specified if gain was not one of these options."
+    )
+    TX_BB_GAIN = (
+        "The HackRF One, when in transmit mode, does not have a BB Gain."
+        "We chose to require that it be equal to zero to reduce the risk of errors."
+    )
+
 
 @attrs.define
 class HackRFArgs:
@@ -52,20 +60,23 @@ class HackRFArgs:
     Basic argument and validator parent to reduce redundancy
     The arguments between Transmit and Recieve modes are almost identical, minus a few minor differences in values
     """
+
     device_args: str = field()
 
     center_freq: float = field()
+
     @center_freq.validator
     def center_freq_check(self, attribute, value):
         if not (1e6 <= value <= 6e9):
             raise ValueError(HACKRF_ERRORS.CENTER_FREQ)
 
     # I would like this to be after everything else, but
-    # I don't know what I should pick as the default, so 
+    # I don't know what I should pick as the default, so
     # I'm putting it in the mandatory args section.
-    bandwidth: float = field()  
+    bandwidth: float = field()
 
     samp_rate: float = field(default=2e6)
+
     @samp_rate.validator
     def samp_rate_check(self, attribute, value):
         if not (2e6 <= value <= 20e6):
@@ -81,55 +92,62 @@ class HackRFArgs:
     def init_cf_da(cls, center_freq: float, device_args: str):
         """Similar to normal __init__, but (a) only center_freq and device_args are allowed to be specified, and (b) sets the bandwidth to 2e6."""
         return cls(center_freq=center_freq, device_args=device_args, bandwidth=2e6)
+
+
 @attrs.define
 class HackRFArgs_RX(HackRFArgs):
     """
     Used in GNU Radio's Osmocom Source block.
-    
+
     Parameters
     ----------
     device_args :
-        This is typically "hackrf=0" when using the Hack RF.  
+        This is typically "hackrf=0" when using the Hack RF.
         Options documented here: https://osmocom.org/projects/gr-osmosdr/wiki
-    
-    All others: 
+
+    All others:
         Documented on the Hack RF FAQ.
     """
 
     if_gain: int = field(default=24)
+
     @if_gain.validator
     def if_gain_check(self, attribute, value):
-        if value not in range(0, 40+8, 8):
+        if value not in range(0, 40 + 8, 8):
             raise ValueError(HACKRF_ERRORS.RX_IF_GAIN)
-        
+
     bb_gain: int = field(default=30)
+
     @bb_gain.validator
     def bb_gain_check(self, attribute, value):
-        if value not in range(0, 62+2, 2):
+        if value not in range(0, 62 + 2, 2):
             raise ValueError(HACKRF_ERRORS.RX_BB_GAIN)
-    
+
 
 @attrs.define
 class HackRFArgs_TX(HackRFArgs):
     """
     Used in GNU Radio's Osmocom Sink block.
-    
+
     Parameters
     ----------
     device_args :
-        This is typically "hackrf=0" when using the Hack RF.  
+        This is typically "hackrf=0" when using the Hack RF.
         Options documented here: https://osmocom.org/projects/gr-osmosdr/wiki
-    
-    All others: 
+
+    All others:
         Documented on the Hack RF FAQ.
     """
+
     if_gain: int = field(default=24)
+
     @if_gain.validator
     def if_gain_check(self, attribute, value):
-        if value not in range(0, 47+1):
+        if value not in range(0, 47 + 1):
             raise ValueError(HACKRF_ERRORS.TX_IF_GAIN)
-    
+
     bb_gain: int = field(default=0)
+
     @bb_gain.validator
     def bb_gain_check(self, attribute, value):
         if value != 0:
@@ -143,26 +161,25 @@ OsmocomArgs_TX = Union[HackRFArgs_TX]
 OsmocomArgs = Union[HackRFArgs]
 
 
-
-
-
 class gr_top_block_typed(gr.top_block):
     """
     Alias for gr.top_block, with types added
     """
+
     def lock(self) -> Any:
         """
-        Lock a flowgraph. Effectively "pauses" the flowgraph. 
+        Lock a flowgraph. Effectively "pauses" the flowgraph.
         Documented here: https://www.gnuradio.org/doc/doxygen-3.7.4.1/classgr_1_1top__block.html#a1492e3e872707c947999eff942aab8ab
         """
         return super().lock()
+
 
 class TbMethodWrap:
     """
     Aliases for typechecking the gr.topblock flowgraph method classes
     """
-    _tb: gr_top_block_typed
 
+    _tb: gr_top_block_typed
 
 
 class LockUnlockable(TbMethodWrap):
@@ -188,16 +205,19 @@ class Waitable(TbMethodWrap):
     def wait(self) -> None:
         self._tb.wait()
 
+
 class HasOsmo:
     _osmoargs: OsmocomArgs
     _osmo: Union[osmosdr.source, osmosdr.sink]
 
+
 class CenterFrequencySettable(HasOsmo):
-    
     @typechecked
     def set_center_freq(self, center_freq: float) -> float:
         self._osmoargs.center_freq = center_freq
         return self._osmo.set_center_freq(center_freq)
+
+
 class IFGainSettable(HasOsmo):
     @typechecked
     def set_if_gain(self, if_gain: int) -> float:
@@ -217,8 +237,10 @@ def get_OsmocomArgs_RX(center_freq: float, device_args: str) -> OsmocomArgs_RX:
     if device_args.startswith("hackrf="):
         return HackRFArgs_RX.init_cf_da(center_freq, device_args)
     else:
-        raise NotImplementedError("In the current implementation, device_args must "
-                                  "start with 'hackrf=', for example, 'hackrf=0'.")
+        raise NotImplementedError(
+            "In the current implementation, device_args must "
+            "start with 'hackrf=', for example, 'hackrf=0'."
+        )
 
 
 @typechecked
@@ -226,22 +248,31 @@ def get_OsmocomArgs_TX(center_freq: float, device_args: str) -> OsmocomArgs_TX:
     if device_args.startswith("hackrf="):
         return HackRFArgs_TX.init_cf_da(center_freq, device_args)
     else:
-        raise NotImplementedError("In the current implementation, device_args must "
-                                  "start with 'hackrf=', for example, 'hackrf=0'.")
+        raise NotImplementedError(
+            "In the current implementation, device_args must "
+            "start with 'hackrf=', for example, 'hackrf=0'."
+        )
 
 
 @overload
-def configureOsmocom(osmo_init_func: Type[osmosdr.source],
-                     osmoargs: OsmocomArgs_RX
-                     ) -> osmosdr.source: ...
+def configureOsmocom(
+    osmo_init_func: Type[osmosdr.source], osmoargs: OsmocomArgs_RX
+) -> osmosdr.source:
+    ...
+
+
 @overload
-def configureOsmocom(osmo_init_func: Type[osmosdr.sink],
-                     osmoargs: OsmocomArgs_TX
-                     ) -> osmosdr.sink: ...
+def configureOsmocom(
+    osmo_init_func: Type[osmosdr.sink], osmoargs: OsmocomArgs_TX
+) -> osmosdr.sink:
+    ...
+
+
 @typechecked
-def configureOsmocom(osmo_init_func: Union[osmosdr.source, osmosdr.sink],
-                     osmoargs: Union[OsmocomArgs_RX, OsmocomArgs_TX]
-                     ) -> Union[osmosdr.source, osmosdr.sink]:
+def configureOsmocom(
+    osmo_init_func: Union[osmosdr.source, osmosdr.sink],
+    osmoargs: Union[OsmocomArgs_RX, OsmocomArgs_TX],
+) -> Union[osmosdr.source, osmosdr.sink]:
     """
     Boilerplate for initializing an osmocom source or sink
     """
@@ -256,14 +287,15 @@ def configureOsmocom(osmo_init_func: Union[osmosdr.source, osmosdr.sink],
     osmo.set_bb_gain(osmoargs.bb_gain)
     osmo.set_bandwidth(osmoargs.bandwidth)
     return osmo
-    
+
 
 def configure_graceful_exit(tb: gr.top_block):
-    """The portion of GNU Radio boilerplate that 
+    """The portion of GNU Radio boilerplate that
     catches SIGINT and SIGTERM, and tells the flowgraph
     to gracefully stop before exiting the program.
-    
+
     Used mainly for non-graphical flowgraphs."""
+
     def sig_handler(sig=None, frame=None):
         tb.stop()
         tb.wait()
@@ -285,24 +317,25 @@ class QueueTypeWrapped(Queue):
     Right now, this is actually just an alias for Queue.
     Someday, we may implement it similarly to `SimpleQueueTypeWrapped`.
     """
+
     pass
 
 
 class SimpleQueueTypeWrapped(SimpleQueue):
     """For queues of numpy arrays of fixed length and type.
-    
+
     The `dtype` parameter is the dtype of the numpy array contents.
     The `chunk_size` parameter is the length of each queue element.
 
     Example:
     >>> import numpy as np
     >>> q = SimpleQueueTypeWrapped(np.ndarray, np.complex64, 3)
-    
+
     Normal usage:
     >>> q.put(np.array([10, 20, 30], dtype=np.complex64))
     >>> q.get()
     array([10.+0.j, 20.+0.j, 30.+0.j], dtype=complex64)
-    
+
     Wrong type:
     >>> q.put(np.array([10, 20, 30]))
     Traceback (most recent call last):
@@ -315,6 +348,7 @@ class SimpleQueueTypeWrapped(SimpleQueue):
       ...
     AssertionError...
     """
+
     def __init__(self, qtype, dtype, chunk_size: int):
         if qtype != np.ndarray:
             raise NotImplementedError()
@@ -322,7 +356,7 @@ class SimpleQueueTypeWrapped(SimpleQueue):
         self.dtype = dtype
         self.chunk_size = chunk_size
         super().__init__()
-    
+
     def put(self, item):
         assert isinstance(item, self.qtype)
         assert item.dtype == self.dtype
@@ -336,14 +370,14 @@ def queue_to_list(q: SimpleQueue) -> list:
 
     Note that this consumes the queue, so running a second time on
     a queue without changing the queue will produce an empty list.
-    
+
     Examples:
     >>> from queue import SimpleQueue
-    
+
     >>> q = SimpleQueue()
     >>> q.put(3)
     >>> q.put(5)
-    
+
     Normal usage:
     >>> queue_to_list(q)
     [3, 5]
@@ -380,15 +414,13 @@ def prepend_zeros_(data: np.ndarray, zeroCount: int):
     return prepended
 
 
-
 @typechecked
-def validate_hack_rf_transmit(device_name: str,
-                              samp_rate: float,
-                              center_freq: float,
-                              if_gain: int):
+def validate_hack_rf_transmit(
+    device_name: str, samp_rate: float, center_freq: float, if_gain: int
+):
     if device_name != "hackrf":
         return
-    
+
     if not (2e6 <= samp_rate <= 20e6):
         raise DeviceParameterError(
             "The HackRF One is only capable of sample rates "
@@ -396,22 +428,22 @@ def validate_hack_rf_transmit(device_name: str,
             "20 Million samples per second (20e6). "
             f"Your specified sample rate, {samp_rate}, was outside of this range."
         )
-    
+
     if not (1e6 < center_freq < 6e9):
         raise DeviceParameterError(
             "The HackRF One is only capable of center frequencies "
             "between 1 MHz (1e6) and 6 GHz (6e9). "
             f"Your specified frequency, {center_freq}, was outside of this range."
         )
-    
-    if not if_gain in range(0, 47+1, 1):
+
+    if not if_gain in range(0, 47 + 1, 1):
         raise DeviceParameterError(
             "The HackRF One, when in transmit mode, is only capable "
             "of the following IF gain settings: "
             "[0, 1, 2, ... 45, 46, 47]. "
             f"Your specified IF gain, {if_gain}, was not one of these options."
         )
-    
+
 
 @typechecked
 def getSize(dtype: type) -> int:
@@ -430,29 +462,38 @@ def getSize(dtype: type) -> int:
 
 
 ## james-pcdr wants to think about this a bit more before adding @typechecked
-def gnuradio_send(data: np.ndarray,
-                  center_freq: float,
-                  samp_rate: float,
-                  if_gain: int = 16,
-                  device_args: str = "hackrf=0",
-                  repeat: bool = False):
+def gnuradio_send(
+    data: np.ndarray,
+    center_freq: float,
+    samp_rate: float,
+    if_gain: int = 16,
+    device_args: str = "hackrf=0",
+    repeat: bool = False,
+):
     """Sends `data` to osmocom sink."""
     from pcdr._internal.vector_tx_flowgraphs import vector_to_osmocom_sink
-    normal_py_data = list(map(complex, data))  # GNURadio type issues. Eventually, fix this for efficiency
-    tb = vector_to_osmocom_sink(normal_py_data, center_freq, samp_rate, if_gain, device_args, repeat)
+
+    normal_py_data = list(
+        map(complex, data)
+    )  # GNURadio type issues. Eventually, fix this for efficiency
+    tb = vector_to_osmocom_sink(
+        normal_py_data, center_freq, samp_rate, if_gain, device_args, repeat
+    )
     configure_graceful_exit(tb)
     tb.start()
     tb.wait()
 
 
 @typechecked
-def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"],
-             func: Callable,
-             in_type: Optional[type],
-             out_type: Optional[type]):
+def blockify(
+    category: Literal["source", "sink", "whatever_you_call_the_others"],
+    func: Callable,
+    in_type: Optional[type],
+    out_type: Optional[type],
+):
     """Turns a function into a (relatively inefficient) gnuradio block.
     Mostly useful for testing.
-    
+
     Example:
     >>> from itertools import count
     >>> from pcdr.unstable.misc2 import first_n_match
@@ -462,58 +503,51 @@ def blockify(category: Literal["source", "sink", "whatever_you_call_the_others"]
     >>> first_n_match(srcblk, np.int32, 3, [0, 1, 2])
     """
     if category == "source":
+
         class Blockify_Blk(gr.sync_block):
             @typechecked
             def __init__(self):
-                gr.sync_block.__init__(
-                    self,
-                    name='',
-                    in_sig=[],
-                    out_sig=[out_type]
-                )
+                gr.sync_block.__init__(self, name="", in_sig=[], out_sig=[out_type])
 
-            def work(self, input_items, output_items):  
+            def work(self, input_items, output_items):
                 output_items[0][0] = func()
-                return 1        
+                return 1
+
         return Blockify_Blk()
-    
+
     elif category == "sink":
+
         class Blockify_Blk(gr.sync_block):  # type: ignore[no-redef]
             @typechecked
             def __init__(self):
-                gr.sync_block.__init__(
-                    self,
-                    name='',
-                    in_sig=[in_type],
-                    out_sig=[]
-                )
+                gr.sync_block.__init__(self, name="", in_sig=[in_type], out_sig=[])
                 self._in_type = in_type
 
-            def work(self, input_items, output_items): 
+            def work(self, input_items, output_items):
                 # This may be a redundant check, but that's ok
                 #  because this is not meant to be performant
                 indat = input_items[0][0]
                 assert isinstance(indat, self._in_type)
                 func(indat)
-                return 1        
+                return 1
+
         return Blockify_Blk()
-    
+
     elif category == "whatever_you_call_the_others":
+
         class Blockify_Blk(gr.sync_block):  # type: ignore[no-redef]
             @typechecked
             def __init__(self):
                 gr.sync_block.__init__(
-                    self,
-                    name='',
-                    in_sig=[in_type],
-                    out_sig=[out_type]
+                    self, name="", in_sig=[in_type], out_sig=[out_type]
                 )
 
-            def work(self, input_items, output_items):  
+            def work(self, input_items, output_items):
                 output_items[0][0] = func(input_items[0][0])
-                return 1        
+                return 1
+
         return Blockify_Blk()
-    
+
     else:
         raise ValueError("not possible because of typechecked")
 

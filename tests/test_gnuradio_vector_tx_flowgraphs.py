@@ -1,5 +1,6 @@
 # from pcdr.unstable.gnuradio_sendlike import _gnuradio_write_file
 import pytest
+
 pytest.skip(allow_module_level=True)
 import numpy as np
 import random
@@ -16,11 +17,8 @@ def test_write_and_read():
     assert len(dat_to_write) == len_dat
     assert isinstance(dat_to_write, np.ndarray)
     _gnuradio_write_file(dat_to_write, fn)
-    
+
     nploaded = np.fromfile(fn, np.complex64)
     assert len(nploaded) <= len(dat_to_write)
-    subset_of_original_that_actually_got_written = dat_to_write[:len(nploaded)]
+    subset_of_original_that_actually_got_written = dat_to_write[: len(nploaded)]
     assert (nploaded == subset_of_original_that_actually_got_written).all()
-    
-
-

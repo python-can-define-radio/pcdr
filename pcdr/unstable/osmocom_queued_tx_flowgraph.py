@@ -19,8 +19,6 @@ from pcdr._internal.misc import validate_hack_rf_transmit
 from gnuradio import zeromq
 
 
-
-
 ## Bizarre GNU Radio variable-rename issues
 
 # _queue_to_print_sink__queue_source = queue_source
@@ -40,9 +38,9 @@ from gnuradio import zeromq
 #                  if_gain: int,
 #                  external_queue: SimpleQueue,
 #                  device_args: str = "hackrf=0"):
-        
+
 #         gr.top_block.__init__(self, "Top block")
-        
+
 #         validate_hack_rf_transmit(samp_rate, center_freq, if_gain)
 
 #         self.queue_source = queue_source(external_queue, chunk_size)
@@ -98,5 +96,3 @@ from gnuradio import zeromq
 #         self.vector_to_stream = blocks.vector_to_stream(gr.sizeof_gr_complex, chunk_size)
 #         self.zmqpub_sink = zeromq.pub_sink(gr.sizeof_gr_complex, 1, f'tcp://0.0.0.0:{port}', 100, False, -1)
 #         self.connect(self.queue_source, self.vector_to_stream, self.zmqpub_sink)
-        
-        

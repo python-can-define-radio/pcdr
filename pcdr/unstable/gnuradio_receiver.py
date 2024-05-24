@@ -8,8 +8,6 @@ from pcdr._internal.misc import configure_graceful_exit
 from pcdr._internal.types_and_contracts import SupportsQueueSink
 
 
-
-
 def __run_block_and_return_queue_contents(tb: SupportsQueueSink, seconds: float):
     """Note: if seconds=-1, that means 'read till done'.
     Don't use seconds=-1 for the osmocom, as it will never finish."""
@@ -29,7 +27,6 @@ def __run_block_and_return_queue_contents(tb: SupportsQueueSink, seconds: float)
     return rx_data.flatten()
 
 
-
 # def gnuradio_receive(
 #         center_freq: float,
 #         samp_rate: float,
@@ -45,19 +42,17 @@ def __run_block_and_return_queue_contents(tb: SupportsQueueSink, seconds: float)
 #     return __run_block_and_return_queue_contents(tb, seconds)
 
 
-
 # def gnuradio_read_file(filename: str, chunk_size: int = 1024, repeat: bool = False) -> np.ndarray:
 #     """Read from a complex-formatted file.
 #     The type should be np.complex64.
 #     Confusingly, GNU Radio Companion refers to this as 'Complex 32'.
-    
+
 #     For general-purpose file reading, `np.fromfile` is superior.
 #     This function is primarily intended to mimic `gnuradio_receive`
 #     to test the non-SDR-peripheral aspects of that implementation.
 #     """
 #     tb = file_source_to_queue_sink(filename, chunk_size, repeat)
 #     return __run_block_and_return_queue_contents(tb, -1)
-
 
 
 # class Gnuradio_receiver():
@@ -67,7 +62,7 @@ def __run_block_and_return_queue_contents(tb: SupportsQueueSink, seconds: float)
 #         self.tb = tb
 #         self.__chunk_size = chunk_size
 #         configure_graceful_exit(tb)
-    
+
 #     def start(self):
 #         self.tb.start()
 
@@ -76,13 +71,13 @@ def __run_block_and_return_queue_contents(tb: SupportsQueueSink, seconds: float)
 
 #     def wait(self):
 #         self.tb.wait()
-    
+
 #     def get(self) -> np.ndarray:
 #         """Returns a chunk from the queue of accumulated received data."""
 #         result = self.tb.queue_sink.get()
 #         assert len(result == self.__chunk_size)
 #         return result
-    
+
 #     def get_all(self) -> List[np.ndarray]:
 #         """Warning: this may or may not work while the flowgraph is running."""
 #         return self.tb.queue_sink.get_all()

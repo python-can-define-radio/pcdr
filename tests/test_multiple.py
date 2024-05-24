@@ -7,7 +7,6 @@ import numpy as np
 from pcdr._internal.misc import queue_to_list
 
 
-
 def test_queue_to_list_empty_queue():
     assert queue_to_list(SimpleQueue()) == []
 
@@ -30,15 +29,11 @@ seconds_strat = st.floats(0, 100)
 num_samples_strat = st.integers(0, 100)
 freq_strat = st.floats(-1e12, 1e12)
 timestamps_strat = hyponp.arrays(
-            dtype=np.float64,
-            shape=1,
-            elements=st.floats(-10e9, 10e9)
-        )
-samp_rate_strat = st.floats(
-    1e-9,  # To help with deal tests, the samp_rate must be reasonable (not tiny)
-    100
+    dtype=np.float64, shape=1, elements=st.floats(-10e9, 10e9)
 )
-
+samp_rate_strat = st.floats(
+    1e-9, 100  # To help with deal tests, the samp_rate must be reasonable (not tiny)
+)
 
 
 # test_makeRealWave = deal.cases(

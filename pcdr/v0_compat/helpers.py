@@ -5,26 +5,24 @@ from typeguard import typechecked
 from gnuradio import gr
 
 
-T = TypeVar('T')
-
-
+T = TypeVar("T")
 
 
 class SimpleQueueTypeWrapped(SimpleQueue):
     """For queues of numpy arrays of fixed length and type.
-    
+
     The `dtype` parameter is the dtype of the numpy array contents.
     The `chunk_size` parameter is the length of each queue element.
 
     Example:
     >>> import numpy as np
     >>> q = SimpleQueueTypeWrapped(np.ndarray, np.complex64, 3)
-    
+
     Normal usage:
     >>> q.put(np.array([10, 20, 30], dtype=np.complex64))
     >>> q.get()
     array([10.+0.j, 20.+0.j, 30.+0.j], dtype=complex64)
-    
+
     Wrong type:
     >>> q.put(np.array([10, 20, 30]))
     Traceback (most recent call last):
@@ -37,6 +35,7 @@ class SimpleQueueTypeWrapped(SimpleQueue):
       ...
     AssertionError...
     """
+
     def __init__(self, qtype, dtype, chunk_size: int):
         if qtype != np.ndarray:
             raise NotImplementedError()
@@ -44,7 +43,7 @@ class SimpleQueueTypeWrapped(SimpleQueue):
         self.dtype = dtype
         self.chunk_size = chunk_size
         super().__init__()
-    
+
     def put(self, item):
         assert isinstance(item, self.qtype)
         assert item.dtype == self.dtype
@@ -58,14 +57,14 @@ def queue_to_list(q: SimpleQueue) -> list:
 
     Note that this consumes the queue, so running a second time on
     a queue without changing the queue will produce an empty list.
-    
+
     Examples:
     >>> from queue import SimpleQueue
-    
+
     >>> q = SimpleQueue()
     >>> q.put(3)
     >>> q.put(5)
-    
+
     Normal usage:
     >>> queue_to_list(q)
     [3, 5]
@@ -94,14 +93,13 @@ def queue_to_list(q: SimpleQueue) -> list:
             return retval
 
 
-
 @typechecked
 def bytes_to_bin_list(b: Union[bytes, List[int]]) -> List[int]:
     """
     Converts each item in b to bits.
 
     Examples:
-    
+
     >>> bytes_to_bin_list(b"C")
     [0, 1, 0, 0, 0, 0, 1, 1]
 
@@ -157,31 +155,31 @@ def int_to_bin_list(message: np.ndarray) -> List[int]:
 
     >>> int_to_bin_list(np.array([0x43],dtype='uint8'))
     [0, 1, 0, 0, 0, 0, 1, 1]
-    
+
     >>> int_to_bin_list(np.array([0x43,0x42],dtype='uint8'))
     [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-    
+
     >>> int_to_bin_list(np.array([0x4342],dtype='uint16'))
     [0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-	"""
+    """
 
-    if ((message.dtype == 'int8')|(message.dtype == 'uint8')):
+    if (message.dtype == "int8") | (message.dtype == "uint8"):
         bitlength = 8
-    elif (((message.dtype == 'int16')|(message.dtype == 'uint16'))):
+    elif (message.dtype == "int16") | (message.dtype == "uint16"):
         bitlength = 16
-    elif (((message.dtype == 'int32')|(message.dtype == 'uint32'))):
+    elif (message.dtype == "int32") | (message.dtype == "uint32"):
         bitlength = 32
-    elif (((message.dtype == 'int64')|(message.dtype == 'uint64'))):
+    elif (message.dtype == "int64") | (message.dtype == "uint64"):
         bitlength = 64
     else:
         raise ValueError("Unsupported dtype")
 
-    ret = [0]*bitlength*len(message)
+    ret = [0] * bitlength * len(message)
     bitlist_index = 0
-    shift_list = list(reversed(range(0,bitlength)))
+    shift_list = list(reversed(range(0, bitlength)))
     for x in message:
         for bit_index in shift_list:
-            if x&(1<<bit_index) > 0:
+            if x & (1 << bit_index) > 0:
                 ret[bitlist_index] = 1
             bitlist_index = bitlist_index + 1
     return ret
@@ -200,28 +198,30 @@ class DeviceParameterError(ValueError):
 
 
 @typechecked
-def validate_hack_rf_receive(device_name: str,
-                             samp_rate: Optional[float] = None,
-                             center_freq: Optional[float] = None,
-                             if_gain: Optional[int] = None,
-                             bb_gain: Optional[int] = None):
+def validate_hack_rf_receive(
+    device_name: str,
+    samp_rate: Optional[float] = None,
+    center_freq: Optional[float] = None,
+    if_gain: Optional[int] = None,
+    bb_gain: Optional[int] = None,
+):
     """
     >>> validate_hack_rf_receive("hackrf", samp_rate=1e6)
     Traceback (most recent call last):
       ...
     pcdr.helpers.DeviceParameterError: The HackRF One is only capable of sample rates between 2 Million samples per second (2e6) and 20 Million samples per second (20e6). Your specified sample rate, 1000000.0, was outside of this range.
-    
+
     >>> validate_hack_rf_receive("hackrf", center_freq=7e9)
     Traceback (most recent call last):
       ...
     pcdr.helpers.DeviceParameterError: The HackRF One is only capable of center frequencies ...
-    
+
     No result if valid:
     >>> validate_hack_rf_receive("hackrf", samp_rate=3e6)
     """
     if device_name != "hackrf":
         return
-    
+
     if samp_rate and not (2e6 <= samp_rate <= 20e6):
         raise DeviceParameterError(
             "The HackRF One is only capable of sample rates "
@@ -229,23 +229,23 @@ def validate_hack_rf_receive(device_name: str,
             "20 Million samples per second (20e6). "
             f"Your specified sample rate, {samp_rate}, was outside of this range."
         )
-    
+
     if center_freq and not (1e6 < center_freq < 6e9):
         raise DeviceParameterError(
             "The HackRF One is only capable of center frequencies "
             "between 1 MHz (1e6) and 6 GHz (6e9). "
             f"Your specified frequency, {center_freq}, was outside of this range."
         )
-    
-    if if_gain and not if_gain in range(0, 40+8, 8):
+
+    if if_gain and not if_gain in range(0, 40 + 8, 8):
         raise DeviceParameterError(
             "The HackRF One, when in receive mode, is only capable "
             "of the following if gain settings: "
             "[0, 8, 16, 24, 32, 40]. "
             f"Your specified if gain, {if_gain}, was not one of these options."
         )
-    
-    if bb_gain and not bb_gain in range(0, 62+2, 2):
+
+    if bb_gain and not bb_gain in range(0, 62 + 2, 2):
         raise DeviceParameterError(
             "The HackRF One, when in receive mode, is only capable "
             "of the following bb gain settings: "
@@ -255,13 +255,12 @@ def validate_hack_rf_receive(device_name: str,
 
 
 @typechecked
-def validate_hack_rf_transmit(device_name: str,
-                              samp_rate: float,
-                              center_freq: float,
-                              if_gain: int):
+def validate_hack_rf_transmit(
+    device_name: str, samp_rate: float, center_freq: float, if_gain: int
+):
     if device_name != "hackrf":
         return
-    
+
     if not (2e6 <= samp_rate <= 20e6):
         raise DeviceParameterError(
             "The HackRF One is only capable of sample rates "
@@ -269,22 +268,22 @@ def validate_hack_rf_transmit(device_name: str,
             "20 Million samples per second (20e6). "
             f"Your specified sample rate, {samp_rate}, was outside of this range."
         )
-    
+
     if not (1e6 < center_freq < 6e9):
         raise DeviceParameterError(
             "The HackRF One is only capable of center frequencies "
             "between 1 MHz (1e6) and 6 GHz (6e9). "
             f"Your specified frequency, {center_freq}, was outside of this range."
         )
-    
-    if not if_gain in range(0, 47+1, 1):
+
+    if not if_gain in range(0, 47 + 1, 1):
         raise DeviceParameterError(
             "The HackRF One, when in transmit mode, is only capable "
             "of the following if gain settings: "
             "[0, 1, 2, ... 45, 46, 47]. "
             f"Your specified if gain, {if_gain}, was not one of these options."
         )
-    
+
 
 @typechecked
 def getSize(dtype: type) -> int:
