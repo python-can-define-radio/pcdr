@@ -34,7 +34,7 @@ def __must_be_binary(bits: List[int]) -> None:
     >>> __must_be_binary("101")
     Traceback (most recent call last):
         ...
-    pcdr.modulators.NonBitError: ...
+    pcdr.v0_compat.modulators.NonBitError: ...
     """
     if not all(map(lambda x: x in [1, 0], bits)):
         raise NonBitError(
@@ -70,7 +70,7 @@ def ook_modulate_at_frequency(
     OOK Modulate at a given frequency. Returns the timestamps and the modulated data.
 
     Examples:
-    >>> from pcdr.basictermplot import plot
+    >>> from pcdr.v0_compat.basictermplot import plot
     >>> timestamps, data = ook_modulate_at_frequency([1, 0, 1, 1], bit_length=20, samp_rate=40, freq=2)
     >>> plot(timestamps, data.real, 80, 10)
     xmin: 0.00

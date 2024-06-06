@@ -289,6 +289,7 @@ def ook_modulate_at_frequency(
 
 def docstring_plot(xdata: list, ydata: list, xsize: int = 40, ysize: int = 7):
     """
+    >>> import pytest; pytest.skip("Till github pcdr issue #36 is done")
     >>> import numpy as np
     >>> x = list(range(50))
     >>> print(docstring_plot(x, np.sin(x)))

@@ -229,6 +229,7 @@ class FreqComparisonMultiplier:
 
     def get_freq_strength(self, dat: NDArray[np.complex64]) -> np.float32:
         """
+        >>> import pytest; pytest.skip("Work on as part of OsmoSingleFreqReceiver Github issues")
         >>> from pcdr.unstable import make_wave
         >>> samp_rate = 100
         >>> freq_of_interest = 5

@@ -209,12 +209,12 @@ def validate_hack_rf_receive(
     >>> validate_hack_rf_receive("hackrf", samp_rate=1e6)
     Traceback (most recent call last):
       ...
-    pcdr.helpers.DeviceParameterError: The HackRF One is only capable of sample rates between 2 Million samples per second (2e6) and 20 Million samples per second (20e6). Your specified sample rate, 1000000.0, was outside of this range.
+    pcdr.v0_compat.helpers.DeviceParameterError: The HackRF One is only capable of sample rates between 2 Million samples per second (2e6) and 20 Million samples per second (20e6). Your specified sample rate, 1000000.0, was outside of this range.
 
     >>> validate_hack_rf_receive("hackrf", center_freq=7e9)
     Traceback (most recent call last):
       ...
-    pcdr.helpers.DeviceParameterError: The HackRF One is only capable of center frequencies ...
+    pcdr.v0_compat.helpers.DeviceParameterError: The HackRF One is only capable of center frequencies ...
 
     No result if valid:
     >>> validate_hack_rf_receive("hackrf", samp_rate=3e6)
