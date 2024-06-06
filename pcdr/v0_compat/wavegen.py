@@ -477,16 +477,14 @@ def makeWave(
         raise ValueError("Cannot specify both `seconds` and `num` simultaneously")
     elif seconds == None and num == None:
         raise ValueError("Must specify either `seconds` or `num`")
-    elif seconds != None:
-        assert isinstance(seconds, float)
+    elif seconds is not None:
         if type_ == "real":
             return makeRealWave_time(seconds, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
             return makeComplexWave_time(seconds, samp_rate, freq, allowAliasing)
         else:
             raise ValueError("This will never happen if the @typechecked works")
-    elif num != None:
-        assert isinstance(num, int)
+    elif num is not None:
         if type_ == "real":
             return makeRealWave_numsamps(num, samp_rate, freq, allowAliasing)
         elif type_ == "complex":
