@@ -32,11 +32,15 @@ In the v1.x series, we will adhere to the following:
 
 - Everything in `pcdr._internal` should be ignored by users of this module.
 - Everything in `pcdr.unstable` is in the experimentation phase and is subject to breaking changes between minor version updates.
-- Everything in `pcdr.v0_compat` should be considered deprecated. It will not be changed at all.
+- Everything in `pcdr.v0_compat` should be considered deprecated. As the name implies, it is kept for version 0 compatibility. It will not be changed.
 - Everything else is stable. We will not intentionally make any breaking changes during the v1.x version series.
 
 We made a significant amount of breaking changes when moving from version 0.x to version 1.0.0. If you have trouble migrating from 0.x to 1.x, please [submit an issue](https://github.com/python-can-define-radio/pcdr/issues), and we'd be happy to provide guidance.
 
+### Current status
+
+We intend to launch version 1.0.0 with nothing marked as stable. We admit that this is unconventional, but we hope that it will allow us to improve incrementally based on experimentation, and eventually (perhaps by early to mid 2025) begin to mark some parts as stable. 
+
 ### Repository history
 
-The pcdr module's source was hosted as [a subfolder of the sdr-course repo](https://github.com/python-can-define-radio/sdr-course/tree/main/classroom_activities/Chx_Misc/Python_curric_2). On 2024 April 15, we migrated it to [its own repository](https://github.com/python-can-define-radio/pcdr). See the old repo if you'd like to refer to the commit history.
+The pcdr module's source used to be hosted as [a subfolder of the sdr-course repo](https://github.com/python-can-define-radio/sdr-course/tree/main/classroom_activities/Chx_Misc/Python_curric_2). On 2024 April 15, we migrated it to [its own repository](https://github.com/python-can-define-radio/pcdr). See the old repo if you'd like to refer to the commit history.
