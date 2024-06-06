@@ -5,7 +5,6 @@ from typing import Optional, List, TypeVar, Union, Iterable, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-import plotext
 from typeguard import typechecked
 
 from pcdr._internal.wavegen import noisify
@@ -322,6 +321,7 @@ def docstring_plot(xdata: list, ydata: list, xsize: int = 40, ysize: int = 7):
          └┬──────────┬─────────┬──────────┬─────────┬┘
          0.0       12.2      24.5       36.8     49.0
     """
+    import plotext
     plotext.theme("clear")
     plotext.plot_size(xsize, ysize)
     plotext.plot(xdata, ydata)
