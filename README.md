@@ -32,7 +32,7 @@ In the v1.x series, we will adhere to the following:
 
 - Everything in `pcdr._internal` should be ignored by users of this module.
 - Everything in `pcdr.unstable` is in the experimentation phase and is subject to breaking changes between minor version updates.
-- Everything in `pcdr.v0_compat` should be considered deprecated. As the name implies, it is kept for version 0 compatibility. It will not be changed (except if a feature from v0.x is found to be missing).
+- Everything in `pcdr.v0_compat` should be considered deprecated. As the name implies, it is kept for version 0 compatibility. It will not be changed.
 - Everything else is stable. We will not intentionally make any breaking changes during the v1.x version series.
 
 We made a significant amount of breaking changes when moving from version 0.x to version 1.0.0. If you have trouble migrating from 0.x to 1.x, please [submit an issue](https://github.com/python-can-define-radio/pcdr/issues), and we'd be happy to provide guidance.
