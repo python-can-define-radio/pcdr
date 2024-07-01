@@ -109,14 +109,14 @@ class HackRFArgs_RX(HackRFArgs):
         Documented on the Hack RF FAQ.
     """
 
-    if_gain: int = field(default=24)
+    if_gain: int = field(default=16)
 
     @if_gain.validator
     def if_gain_check(self, attribute, value):
         if value not in range(0, 40 + 8, 8):
             raise ValueError(HACKRF_ERRORS.RX_IF_GAIN)
 
-    bb_gain: int = field(default=30)
+    bb_gain: int = field(default=16)
 
     @bb_gain.validator
     def bb_gain_check(self, attribute, value):
