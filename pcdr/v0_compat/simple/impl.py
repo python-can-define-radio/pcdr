@@ -157,3 +157,7 @@ class OsmosdrReceiver:
     def set_bb_gain(self, bb_gain: int):
         validate_hack_rf_receive("hackrf", bb_gain=bb_gain)
         self.osmo_source.set_bb_gain(bb_gain)
+
+    def stop_and_wait(self):
+        self.tb.stop()
+        self.tb.wait()
