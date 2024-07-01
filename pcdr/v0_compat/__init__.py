@@ -5,8 +5,6 @@ from pcdr.v0_compat.wavegen import (
     make_fft,
 )
 
-from pcdr.v0_compat import simple
-
 from pcdr.v0_compat.gnuradio_sender import (
     gnuradio_send,
 )
