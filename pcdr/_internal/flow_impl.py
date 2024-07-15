@@ -102,7 +102,7 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable):
 
         Those who are familiar with SDRs may wonder how
         this avoids the "DC spike". `set_freq` actually tunes below the specified
-        frequency (20 kHz below at time of writing). Then, when `get_strength` is run,
+        frequency (20 kHz below in this version of pcdr). Then, when `get_strength` is run,
         the receiver checks for activity at the expected location (the `freq` specified in this function).
         As a result, the strength level returned by `get_strength` is that of the desired frequency.
         """
