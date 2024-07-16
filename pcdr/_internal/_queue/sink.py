@@ -14,7 +14,7 @@ Queue is empty, block will now report 'done' to GNU Radio flowgraph
 """
 from typeguard import typechecked
 from gnuradio import gr, blocks
-from termcolor import cprint
+# from termcolor import cprint
 from pcdr._internal.misc import getSize
 from pcdr._internal.our_GR_blocks import Blk_queue_source
 from pcdr._internal._queue import ChunkSizeNonIntegerError
@@ -41,7 +41,7 @@ def _post_warn_chunk_size(chunk_size: int):
     cs = chunk_size
     ## If chunk size is not a power of 2
     if cs & (cs - 1) != 0:
-        cprint(
+        print(
             f"Your chunk size {cs} is not a power of 2, so GNU Radio likely issued 'buffer_double_mapped' warning(s). This warning can be ignored, as it is only performance-related, not functionality-related.\n",
             "green",
         )

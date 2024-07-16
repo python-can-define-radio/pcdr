@@ -1,3 +1,4 @@
+"""
 try:
     from pcdr import flow
 
@@ -7,3 +8,4 @@ except ModuleNotFoundError:
     print(
         "If you wish to install GNU Radio, see this page: https://wiki.gnuradio.org/index.php/InstallingGR"
     )
+"""
