@@ -10,17 +10,16 @@ pip install pcdr
 
 Note that much of the functionality also depends on GNU Radio. However, `gnuradio` is not listed in the dependencies as it is not pip-installable (as far as the author knows).
 
-<!--
 ### Example usage
 
 ```python3
-from pcdr.flow import OsmoSingleFreqReceiver
+from pcdr.unstable.flow import OsmoSingleFreqReceiver
 tuned_freq = 103.9e6
 receiver = OsmoSingleFreqReceiver("hackrf=0", tuned_freq)
-recevier.start()
+receiver.start()
 strength = receiver.get_strength()
 print(f"Strength of {tuned_freq} Hz: {strength}")
-recevier.stop_and_wait()
+receiver.stop_and_wait()
 ```
 -->
 
