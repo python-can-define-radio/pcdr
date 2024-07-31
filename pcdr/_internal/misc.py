@@ -268,9 +268,9 @@ def configureOsmocom(
     ...
 
 
-@typechecked
+
 def configureOsmocom(
-    osmo_init_func: Union[osmosdr.source, osmosdr.sink],
+    osmo_init_func,
     osmoargs: Union[OsmocomArgs_RX, OsmocomArgs_TX],
 ) -> Union[osmosdr.source, osmosdr.sink]:
     """
@@ -279,6 +279,11 @@ def configureOsmocom(
     ## TODO: The osmo_init_func is actually either osmosdr.source or osmosdr.sink,
     ## but since in this version of GNU Radio we can't specify that, these
     ## won't show correctly.
+
+    ## TODO: this is terrible code. fix.
+    typish = repr(osmo_init_func)
+    if not ("sink" in typish or "source" in typish):
+        raise TypeError("osmo_init_func has wrong type")
     osmo = osmo_init_func(osmoargs.device_args)
     osmo.set_center_freq(osmoargs.center_freq)
     osmo.set_sample_rate(osmoargs.samp_rate)
