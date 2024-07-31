@@ -36,7 +36,7 @@ class OsmoSingleFreqReceiver(Startable, StopAndWaitable):
     Example usage:
 
     ```python3
-    from pcdr.flow import OsmoSingleFreqReceiver
+    from pcdr.unstable.flow import OsmoSingleFreqReceiver
     receiver = OsmoSingleFreqReceiver("hackrf=0", 103.9e6)
     receiver.start()
     strength = receiver.get_strength()
@@ -122,7 +122,7 @@ class OsmoSingleFreqTransmitter(
     Example usage:
 
     ```python3
-    from pcdr.flow import OsmoSingleFreqTransmitter
+    from pcdr.unstable.flow import OsmoSingleFreqTransmitter
     import time
     transmitter = OsmoSingleFreqTransmitter("hackrf=0", 2.45e9)
     transmitter.start()
@@ -228,6 +228,7 @@ class OsmoWBFMTransmitter(
     Transmits Wide-Band Frequency Modulated audio on the specified frequency.
 
     ```python3
+    # NOT YET READY
     from pcdr.flow import OsmoWBFMTransmitter
     import time
     transmitter = OsmoWBFMTransmitter("hackrf=0", 2.45e9, "pulse_monitor")
@@ -288,8 +289,8 @@ class OsmoUnprocessedReceiver(Startable, StopAndWaitable, CenterFrequencySettabl
     """
     Example:
 
-    from pcdr._beta.flow import OsmoUnprocessedReceiver
-    from pcdr import make_fft
+    from pcdr.unstable.flow import OsmoUnprocessedReceiver
+    from pcdr.unstable import make_fft
     import matplotlib.pyplot as plt
 
     samp_rate = 2e6
