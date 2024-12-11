@@ -21,9 +21,15 @@ strength = receiver.get_strength()
 print(f"Strength of {tuned_freq} Hz: {strength}")
 receiver.stop_and_wait()
 ```
--->
+
 
 ### Current status
+
+#### 2024 Dec 11
+
+The future of the pcdr module is indeterminate. Pull requests are welcome.
+
+#### 2024 July 15
 
 We launched version 1.0.0 with nothing marked as stable (i.e., everything marked as unstable). We admit that this is unconventional, but we hope that it will allow us to improve incrementally based on experimentation, and eventually (perhaps by early to mid 2025) begin to mark some parts as stable.
 
