@@ -1,5 +1,8 @@
 # pcdr
 
+> [!IMPORTANT]
+> pcdr is no longer being developed by the original creators. Pull requests are welcome.
+
 pcdr module: https://pypi.org/project/pcdr/
 
 ### Installation
@@ -24,6 +27,10 @@ receiver.stop_and_wait()
 
 
 ### Current status
+
+#### 2025 Dec 31
+
+The pcdr module is no longer being developed by the original creators. Pull requests are welcome.
 
 #### 2024 Dec 11
 
